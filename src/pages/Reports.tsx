@@ -102,9 +102,8 @@ export function Reports() {
 
   return (
     <div className="page fade-page">
-      <PageHeader title="Reports" sub="Review investigation findings, recommendations, and the evidence behind them." right={controls} />
-      <div className="rp-meta"><span className="eyebrow">Reports · <TextMorph numbers>{String(mode === 'empty' ? 0 : list.length)}</TextMorph></span><span className="card-sub">All time</span></div>
-      <div className="rp-list">
+      <PageHeader title="Reports" count={loading ? undefined : mode === 'empty' ? 0 : list.length} sub="Review investigation findings, recommendations, and the evidence behind them." right={controls} />
+      <div className="group rp-list">
         {loading ? Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="rp-row" style={{ cursor: 'default' }}>
             <div className="rp-main">
@@ -115,7 +114,7 @@ export function Reports() {
             </div>
           </div>
         )) : mode === 'empty' ? (
-          <div style={{ position: 'relative', minHeight: 360 }}>
+          <div className="card" style={{ position: 'relative', minHeight: 360 }}>
             <EmptyState title="No reports yet" sub="When Ferno spots a change worth explaining, or you ask it a question, the investigation lands here." />
             <PixelCorner cols={22} rows={8} size={14} opacity={0.35} />
           </div>
@@ -193,7 +192,7 @@ export function ReportDetail({ id }: { id: string }) {
       </div>
 
       <div className="rp-detail">
-        <div className="rp-col">
+        <div className="group rp-col">
           {r.status === 'failed' && (
             <section className="card rp-sec rp-error">
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -280,7 +279,7 @@ export function ReportDetail({ id }: { id: string }) {
           </section>
         </div>
 
-        <aside className="rp-side">
+        <aside className="group rp-side">
           <section className="card rp-sec">
             <div className="eyebrow">Investigated lead</div>
             <div className="rp-lead">

@@ -327,13 +327,14 @@ export function SidebarToggle() {
   )
 }
 
-export function PageHeader({ title, sub, right }: { title: string; sub: string; right?: ReactNode }) {
+export function PageHeader({ title, sub, right, count }: { title: string; sub: string; right?: ReactNode; count?: number }) {
   return (
     <div className="page-header">
       <div className="title-zone">
         <div className="title-row">
           <SidebarToggle />
           <h1 className="page-title">{title}</h1>
+          {count !== undefined && <TextMorph numbers className="title-count" aria-label={`${count} items`}>{String(count)}</TextMorph>}
         </div>
         <p className="page-sub">{sub}</p>
       </div>
