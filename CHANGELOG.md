@@ -22,6 +22,12 @@ Entry types: **New** (screen or feature), **Changed** (redesign or behaviour cha
 - **Analytics KPI tiles:** removed the sparklines.
 
 ### Fixed
+- **Dropdowns no longer get cut off inside cards.** Every menu (selects, composer chips, workspace and account menus) now renders in a layer above the page through one `Popover` (`src/components/ui.tsx`). It:
+  - opens below its trigger, or flips above when there isn't room below;
+  - caps its height to the space available and scrolls inside;
+  - stays inside the window horizontally;
+  - follows its trigger while the page scrolls or resizes, and closes once the trigger scrolls off screen.
+  It scales in from the side it opens from (150ms) and exits faster (100ms).
 - **Recent thumbnails:** they now fill their card's full height.
 - **Traffic chart:** no longer drifts, which had caused a flattening line and repeated date labels.
 - **Dev setup:** clearing Vite's dependency cache after installing packages fixes the duplicate-React "Invalid hook call".

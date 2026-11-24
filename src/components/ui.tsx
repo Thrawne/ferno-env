@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
+import { createPortal } from 'react-dom'
 import { Check, ChevronsUpDown, CircleHelp } from 'lucide-react'
 import { RANGES, RANGE_LABEL, type Range } from '../data'
 import { Sparkline } from '../charts/AreaChart'
@@ -20,47 +21,123 @@ export function FernoMark({ size = 18, animate = false }: { size?: number; anima
   return <img src="/brand/ferno-agent.svg" width={size} height={size} alt="" aria-hidden className={animate ? 'mark-think' : undefined} style={{ flexShrink: 0 }} />
 }
 
-/* ───────── Dropdown select ───────── */
-export function useClickOutside(open: boolean, close: () => void) {
-  const ref = useRef<HTMLDivElement>(null)
+/* ───────── Popover ─────────
+ * Every dropdown renders here, in a fixed layer on <body>, so no card's
+ * overflow can crop it. It measures its trigger and:
+ *  - opens below, or flips above when there isn't room below (and more above);
+ *  - caps its height to the space it has and scrolls inside past that;
+ *  - stays inside the viewport horizontally;
+ *  - follows the trigger while anything scrolls or resizes, and closes once the
+ *    trigger scrolls out of view.
+ * Motion: scales in from the edge it opens from (150ms ease-out), exits
+ * faster (100ms) so it never lingers over what you're doing next.
+ */
+type Place = { top: number; left: number; minWidth: number; maxHeight: number; up: boolean }
+
+export function Popover({ anchor, open, onClose, align = 'start', matchWidth = true, minWidth = 0, label, children }: {
+  anchor: RefObject<HTMLElement | null>; open: boolean; onClose: () => void
+  align?: 'start' | 'end'; matchWidth?: boolean; minWidth?: number; label?: string; children: ReactNode
+}) {
+  const menu = useRef<HTMLDivElement>(null)
+  const [mounted, setMounted] = useState(open)
+  const [closing, setClosing] = useState(false)
+  const [place, setPlace] = useState<Place | null>(null)
+
+  // keep it mounted through the exit animation
+  useEffect(() => {
+    if (open) { setMounted(true); setClosing(false); return }
+    if (!mounted) return
+    setClosing(true)
+    const t = setTimeout(() => { setMounted(false); setClosing(false); setPlace(null) }, 100)
+    return () => clearTimeout(t)
+  }, [open]) // eslint-disable-line
+
+  const measure = useCallback(() => {
+    const a = anchor.current?.getBoundingClientRect()
+    const m = menu.current
+    if (!a || !m) return
+    const vw = document.documentElement.clientWidth, vh = window.innerHeight
+    const gap = 6, edge = 8
+    // trigger scrolled out of view: close rather than float over nothing
+    if (a.bottom < 0 || a.top > vh) { onClose(); return }
+    const natural = m.scrollHeight
+    const below = vh - a.bottom - gap - edge
+    const above = a.top - gap - edge
+    const up = natural > below && above > below
+    const maxHeight = Math.max(96, Math.min(natural, up ? above : below))
+    const width = Math.max(m.offsetWidth, matchWidth ? a.width : 0, minWidth)
+    let left = align === 'end' ? a.right - width : a.left
+    left = Math.min(Math.max(edge, left), vw - width - edge)
+    const top = up ? a.top - gap - maxHeight : a.bottom + gap
+    setPlace({ top, left, minWidth: Math.max(matchWidth ? a.width : 0, minWidth), maxHeight, up })
+  }, [anchor, align, matchWidth, minWidth, onClose])
+
+  useLayoutEffect(() => {
+    if (!mounted || closing) return
+    measure()
+    let raf = 0
+    const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(measure) }
+    window.addEventListener('scroll', on, true)
+    window.addEventListener('resize', on)
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('scroll', on, true); window.removeEventListener('resize', on) }
+  }, [mounted, closing, measure])
+
+  // outside press and Escape close it; the menu itself counts as inside
   useEffect(() => {
     if (!open) return
-    const h = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) close() }
-    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
-    document.addEventListener('pointerdown', h)
-    document.addEventListener('keydown', k)
-    return () => { document.removeEventListener('pointerdown', h); document.removeEventListener('keydown', k) }
-  }, [open, close])
-  return ref
+    const down = (e: PointerEvent) => {
+      const t = e.target as Node
+      if (anchor.current?.contains(t) || menu.current?.contains(t)) return
+      onClose()
+    }
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') { onClose(); anchor.current?.querySelector<HTMLElement>('button')?.focus() } }
+    document.addEventListener('pointerdown', down)
+    document.addEventListener('keydown', key)
+    return () => { document.removeEventListener('pointerdown', down); document.removeEventListener('keydown', key) }
+  }, [open, onClose, anchor])
+
+  if (!mounted) return null
+  return createPortal(
+    <div ref={menu} role="listbox" aria-label={label}
+      className={'menu pop' + (place?.up ? ' pop-up' : ' pop-down') + (align === 'end' ? ' pop-end' : '') + (closing ? ' pop-out' : '')}
+      style={{
+        top: place?.top ?? -9999, left: place?.left ?? -9999, minWidth: place?.minWidth,
+        maxHeight: place?.maxHeight, visibility: place ? 'visible' : 'hidden',
+      }}>
+      {children}
+    </div>,
+    document.body,
+  )
 }
 
+/* ───────── Dropdown select ───────── */
 export function Select<T extends string>({ value, options, onChange, placeholder, label, align, width, icon }: {
   value: T | null; options: { value: T; label: ReactNode }[]; onChange: (v: T) => void
   placeholder?: string; label?: (v: T) => ReactNode; align?: 'right'; width?: number | string; icon?: ReactNode
 }) {
   const [open, setOpen] = useState(false)
-  const ref = useClickOutside(open, () => setOpen(false))
+  const ref = useRef<HTMLDivElement>(null)
+  const close = useCallback(() => setOpen(false), [])
   const cur = options.find((o) => o.value === value)
   return (
     <div className="select-wrap" ref={ref} style={{ width }}>
-      <button className="select-btn" onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open}>
+      <button className="select-btn" onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open} data-open={open || undefined}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
           {icon}
           {cur ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label ? label(cur.value) : cur.label}</span> : <span className="ph">{placeholder}</span>}
         </span>
         <ChevronsUpDown size={14} />
       </button>
-      {open && (
-        <div className={'menu' + (align === 'right' ? ' right' : '')} role="listbox">
-          {options.map((o) => (
-            <button key={o.value} className="menu-item" role="option" aria-selected={o.value === value}
-              onClick={() => { onChange(o.value); setOpen(false) }}>
-              {o.label}
-              {o.value === value && <Check size={15} strokeWidth={2.5} className="check" />}
-            </button>
-          ))}
-        </div>
-      )}
+      <Popover anchor={ref} open={open} onClose={close} align={align === 'right' ? 'end' : 'start'} label={placeholder}>
+        {options.length === 0 && <div className="menu-empty">Nothing here yet</div>}
+        {options.map((o) => (
+          <button key={o.value} className="menu-item" role="option" aria-selected={o.value === value}
+            onClick={() => { onChange(o.value); setOpen(false) }}>
+            {o.label}
+            {o.value === value && <Check size={15} strokeWidth={2.5} className="check" />}
+          </button>
+        ))}
+      </Popover>
     </div>
   )
 }

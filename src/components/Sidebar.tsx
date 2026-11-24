@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { BookOpen, ChartLine, ChevronDown, ChevronsUpDown, FileText, KeyRound, LayoutDashboard, LogOut, MousePointerClick, Plus, Puzzle, Settings, Users, Check } from 'lucide-react'
-import { FernoMark, useApp, useClickOutside } from './ui'
+import { FernoMark, Popover, useApp } from './ui'
 
 const WORKSPACE = [
   { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} /> },
@@ -49,8 +49,10 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const go = (r: string) => { rawGo(r); onNavigate?.() }
   const [wsOpen, setWsOpen] = useState(false)
   const [userOpen, setUserOpen] = useState(false)
-  const wsRef = useClickOutside(wsOpen, () => setWsOpen(false))
-  const userRef = useClickOutside(userOpen, () => setUserOpen(false))
+  const wsRef = useRef<HTMLDivElement>(null)
+  const userRef = useRef<HTMLDivElement>(null)
+  const closeWs = useCallback(() => setWsOpen(false), [])
+  const closeUser = useCallback(() => setUserOpen(false), [])
   return (
     <aside className="sidebar">
       <div className="ws-switch" ref={wsRef}>
@@ -59,16 +61,14 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <span><div className="t">Ennead</div><div className="s">Tokencraft</div></span>
         </button>
         <button className="ws-chev" aria-label="Switch workspace" onClick={() => setWsOpen((o) => !o)}><ChevronsUpDown size={14} /></button>
-        {wsOpen && (
-          <div className="menu" style={{ width: '100%' }}>
+        <Popover anchor={wsRef} open={wsOpen} onClose={closeWs} label="Projects">
             <div className="menu-label">Projects</div>
             <button className="menu-item" onClick={() => setWsOpen(false)}><WsTile size={20} />Tokencraft<Check size={15} className="check" /></button>
             <button className="menu-item" onClick={() => setWsOpen(false)}><span style={{ width: 20, height: 20, borderRadius: 5, background: 'var(--s2)' }} />Jewelcase</button>
             <button className="menu-item" onClick={() => setWsOpen(false)}><span style={{ width: 20, height: 20, borderRadius: 5, background: 'var(--s3)' }} />Egg Ledger</button>
             <div className="menu-sep" />
             <button className="menu-item" onClick={() => setWsOpen(false)}><Plus size={16} />New project</button>
-          </div>
-        )}
+        </Popover>
       </div>
 
       <Group label="Workspace" items={WORKSPACE} go={go} />
@@ -85,13 +85,11 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <span style={{ minWidth: 0, flex: 1 }}><div className="t">Alex Morgan</div><div className="s">alex@tokencraft.app</div></span>
           <ChevronsUpDown size={14} color="var(--n-600)" />
         </button>
-        {userOpen && (
-          <div className="menu up" style={{ width: '100%' }}>
-            <button className="menu-item" onClick={() => { setUserOpen(false); go('settings') }}><Settings size={16} />Account settings</button>
-            <div className="menu-sep" />
-            <button className="menu-item" onClick={() => { setUserOpen(false); go('signin') }}><LogOut size={16} />Sign out</button>
-          </div>
-        )}
+        <Popover anchor={userRef} open={userOpen} onClose={closeUser} label="Account">
+          <button className="menu-item" onClick={() => { setUserOpen(false); go('settings') }}><Settings size={16} />Account settings</button>
+          <div className="menu-sep" />
+          <button className="menu-item" onClick={() => { setUserOpen(false); go('signin') }}><LogOut size={16} />Sign out</button>
+        </Popover>
       </div>
     </aside>
   )

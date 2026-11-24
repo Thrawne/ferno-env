@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import { ArrowUp, ArrowUpRight, ChevronRight, History, Plus, Shuffle, Paperclip, FileText, Image } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ArrowUp, ArrowUpRight, Check, ChevronRight, History, Plus, Shuffle, Paperclip, FileText, Image } from 'lucide-react'
 import { LiveChart } from '../charts/LiveChart'
 import { StackedBars } from '../charts/BarChart'
 import { Funnel } from '../charts/Funnel'
-import { FernoMark, useClickOutside } from '../components/ui'
+import { FernoMark, Popover } from '../components/ui'
 import { RecentThumb } from '../components/RecentThumb'
 import { RANGES, RANGE_LABEL, type Range } from '../data'
 import { RECENT, SUGGESTION_SETS, answerFor, type ChartSpec } from './answers'
@@ -14,40 +14,37 @@ export function Composer({ onSend, autoFocus }: { onSend: (q: string) => void; a
   const [range, setRange] = useState<Range>('7d')
   const [scope, setScope] = useState('All events')
   const [menu, setMenu] = useState<null | 'range' | 'scope' | 'add'>(null)
-  const ref = useClickOutside(menu !== null, () => setMenu(null))
+  const close = useCallback(() => setMenu(null), [])
+  const addRef = useRef<HTMLDivElement>(null)
+  const rangeRef = useRef<HTMLDivElement>(null)
+  const scopeRef = useRef<HTMLDivElement>(null)
   const send = () => { if (v.trim()) { onSend(v.trim()); setV('') } }
   return (
-    <div className="composer" ref={ref}>
+    <div className="composer">
       <div className="composer-box">
         <textarea value={v} autoFocus={autoFocus} placeholder="Ask about sign-ups, a page, or a release…" rows={2}
           onChange={(e) => setV(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }} />
         <div className="composer-row">
-          <div className="select-wrap">
-            <button className="chip round" aria-label="Add context" onClick={() => setMenu(menu === 'add' ? null : 'add')}><Plus size={14} /></button>
-            {menu === 'add' && (
-              <div className="menu up" style={{ minWidth: 180, top: 'auto' }}>
-                <button className="menu-item" onClick={() => setMenu(null)}><FileText size={15} />Attach a report</button>
-                <button className="menu-item" onClick={() => setMenu(null)}><Image size={15} />Add a screenshot</button>
-                <button className="menu-item" onClick={() => setMenu(null)}><Paperclip size={15} />Upload a file</button>
-              </div>
-            )}
+          <div className="select-wrap" ref={addRef}>
+            <button className="chip round" aria-label="Add context" aria-expanded={menu === 'add'} onClick={() => setMenu(menu === 'add' ? null : 'add')}><Plus size={14} /></button>
+            <Popover anchor={addRef} open={menu === 'add'} onClose={close} matchWidth={false} minWidth={180} label="Add context">
+              <button className="menu-item" onClick={close}><FileText size={15} />Attach a report</button>
+              <button className="menu-item" onClick={close}><Image size={15} />Add a screenshot</button>
+              <button className="menu-item" onClick={close}><Paperclip size={15} />Upload a file</button>
+            </Popover>
           </div>
-          <div className="select-wrap">
-            <button className="chip" onClick={() => setMenu(menu === 'range' ? null : 'range')}>{RANGE_LABEL[range]}<ArrowUpRight size={12} /></button>
-            {menu === 'range' && (
-              <div className="menu up" style={{ minWidth: 160 }}>
-                {RANGES.map((r) => <button key={r} className="menu-item" onClick={() => { setRange(r); setMenu(null) }}>{RANGE_LABEL[r]}</button>)}
-              </div>
-            )}
+          <div className="select-wrap" ref={rangeRef}>
+            <button className="chip" aria-expanded={menu === 'range'} onClick={() => setMenu(menu === 'range' ? null : 'range')}>{RANGE_LABEL[range]}<ArrowUpRight size={12} /></button>
+            <Popover anchor={rangeRef} open={menu === 'range'} onClose={close} matchWidth={false} minWidth={160} label="Date range">
+              {RANGES.map((r) => <button key={r} className="menu-item" onClick={() => { setRange(r); close() }}>{RANGE_LABEL[r]}{r === range && <Check size={15} strokeWidth={2.5} className="check" />}</button>)}
+            </Popover>
           </div>
-          <div className="select-wrap">
-            <button className="chip" onClick={() => setMenu(menu === 'scope' ? null : 'scope')}>{scope}<ArrowUpRight size={12} /></button>
-            {menu === 'scope' && (
-              <div className="menu up" style={{ minWidth: 160 }}>
-                {['All events', 'Sign-ups', 'Page views', 'Custom events'].map((s) => <button key={s} className="menu-item" onClick={() => { setScope(s); setMenu(null) }}>{s}</button>)}
-              </div>
-            )}
+          <div className="select-wrap" ref={scopeRef}>
+            <button className="chip" aria-expanded={menu === 'scope'} onClick={() => setMenu(menu === 'scope' ? null : 'scope')}>{scope}<ArrowUpRight size={12} /></button>
+            <Popover anchor={scopeRef} open={menu === 'scope'} onClose={close} matchWidth={false} minWidth={160} label="Events">
+              {['All events', 'Sign-ups', 'Page views', 'Custom events'].map((x) => <button key={x} className="menu-item" onClick={() => { setScope(x); close() }}>{x}{x === scope && <Check size={15} strokeWidth={2.5} className="check" />}</button>)}
+            </Popover>
           </div>
           <button className={'send-btn' + (v.trim() ? ' ready' : '')} aria-label="Send" onClick={send}><ArrowUp size={16} /></button>
         </div>
