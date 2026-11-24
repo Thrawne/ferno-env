@@ -17,6 +17,7 @@ Entry types: **New** (screen or feature), **Changed** (redesign or behaviour cha
 - **Fonts and libraries:** added the Allo font (`--font-allo`), glimm and torph.
 
 ### Changed
+- **Recent thread thumbnails:** fewer, chunkier bars (4 on the front card, 3 on the back, down from 7 and 6) so they read at thumbnail size, closer to the Figma.
 - **Demo user:** the user card and the agent greeting now use a generic demo user (Alex Morgan).
 - **Analytics KPI tiles:** removed the sparklines.
 

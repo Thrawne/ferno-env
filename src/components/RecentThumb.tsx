@@ -20,11 +20,11 @@ export type ThumbKind = 'traffic' | 'rage' | 'pricing'
 
 const ART: Record<ThumbKind, { kind: 'bars' | 'line'; rest: number[]; after: number[]; back: number[] }> = {
   // "What changed in my product recently?" → traffic by month, the late climb
-  traffic: { kind: 'bars', rest: [6, 9, 9, 13, 16, 22, 34], after: [6, 9, 9, 13, 18, 26, 42], back: [4, 6, 5, 8, 7, 9] },
+  traffic: { kind: 'bars', rest: [9, 14, 21, 34], after: [9, 15, 25, 42], back: [5, 7, 9] },
   // "Rage clicks on Export" → daily rage clicks, the mobile spike
-  rage: { kind: 'bars', rest: [14, 16, 26, 30, 31, 36, 40], after: [14, 16, 30, 38, 42, 50, 56], back: [5, 7, 6, 8, 6, 7] },
+  rage: { kind: 'bars', rest: [16, 26, 33, 40], after: [16, 30, 42, 56], back: [6, 8, 7] },
   // "Pricing page spike" → visitors over 14 days
-  pricing: { kind: 'line', rest: [12, 14, 13, 16, 22, 28, 34, 33, 38, 40], after: [12, 14, 13, 16, 24, 32, 40, 41, 47, 52], back: [8, 9, 8, 10, 9, 11] },
+  pricing: { kind: 'line', rest: [12, 14, 13, 16, 22, 28, 34, 33, 38, 40], after: [12, 14, 13, 16, 24, 32, 40, 41, 47, 52], back: [8, 10, 11] },
 }
 
 type S = { on: boolean }
