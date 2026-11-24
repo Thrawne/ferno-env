@@ -13,14 +13,15 @@ const VERDICT: Record<Report['verdict'], { label: string; tone: string }> = {
 }
 const IMPACT = { high: { label: 'High impact', n: 4 }, medium: { label: 'Medium impact', n: 3 }, low: { label: 'Low impact', n: 2 } }
 
-/** Pixel meter (Figma 227:35130): 5 squares, filled ones amber getting more solid toward the last. */
+/** Pixel meter (Figma 227:35130): 5 squares; filled ones step up the accent ramp, darkest at the fill edge. */
+const PX_RAMP = ['var(--accent-200)', 'var(--accent-300)', 'var(--accent-400)', 'var(--accent-500)', 'var(--accent-600)']
 function PixelMeter({ impact }: { impact: NonNullable<Report['impact']> }) {
   const n = IMPACT[impact].n
   return (
     <span className="rp-pxm" title={IMPACT[impact].label}>
       <span className="rp-pxm-bar" aria-hidden>
         {Array.from({ length: 5 }, (_, i) => (
-          <i key={i} style={i < n ? { background: 'var(--accent-500)', opacity: 1 - (n - 1 - i) * 0.1125, animationDelay: `${i * 60}ms` } : undefined} />
+          <i key={i} style={i < n ? { background: PX_RAMP[PX_RAMP.length - n + i], animationDelay: `${i * 60}ms` } : { animationDelay: `${i * 60}ms` }} />
         ))}
       </span>
       {IMPACT[impact].label}
@@ -139,7 +140,6 @@ export function Reports() {
               <div className="rp-top">
                 <SourceChip r={r} />
                 <span className="rp-target mono">{r.event} · {r.page}</span>
-                <span className="rp-date">{r.created}</span>
               </div>
               <div className="rp-title">{r.title}</div>
               <p className="rp-summary">{r.summary}</p>
@@ -155,8 +155,11 @@ export function Reports() {
               </div>
             </div>
             <div className="rp-aside">
-              <ChevronRight size={18} className="rp-chev" />
-              {r.impact && <PixelMeter impact={r.impact} />}
+              <span className="rp-date">{r.created}</span>
+              <div className="rp-aside-mid">
+                <ChevronRight size={18} className="rp-chev" />
+                {r.impact && <PixelMeter impact={r.impact} />}
+              </div>
             </div>
           </button>
         ))}
