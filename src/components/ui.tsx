@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronsUpDown, CircleHelp, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { Check, ChevronsUpDown, CircleHelp } from 'lucide-react'
 import { RANGES, RANGE_LABEL, type Range } from '../data'
 import { Sparkline } from '../charts/AreaChart'
 import { useCountUp } from '../charts/common'
@@ -300,14 +300,22 @@ export function Banner() {
  * is collapsed it stays visible so you can always get it back. ⌘\ / Ctrl+\
  * toggles from anywhere. Desktop only (phones use the drawer).
  */
+/** mingcute:sidebar-left-line (MingCute icon set, Apache-2.0) — the same set as the Figma sidebar. */
+function SidebarLeftLine({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+      <path fill="currentColor" d="M22 18.057c-.063 1.1-.843 1.88-1.943 1.943H3.943c-.445-.026-.846-.153-1.198-.435c-.47-.377-.711-.915-.745-1.508V5.943c.026-.445.153-.846.435-1.198c.377-.47.915-.711 1.508-.745h16.114c1.1.063 1.88.843 1.943 1.943ZM4.006 6.006v11.988L8 18V6ZM10 6v12l9.994-.006V6.006Z" />
+    </svg>
+  )
+}
+
 export function SidebarToggle() {
   const { collapsed, setCollapsed } = useApp()
   const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar'
   return (
     <span className="sb-toggle-slot">
-      <button className="sb-toggle" aria-label={label} aria-pressed={collapsed} data-tip={`${label}  ⌘\\`} onClick={() => setCollapsed(!collapsed)}>
-        <span className="sb-ico" data-on={!collapsed}><PanelLeftClose size={16} /></span>
-        <span className="sb-ico" data-on={collapsed}><PanelLeftOpen size={16} /></span>
+      <button className="sb-toggle" aria-label={label} aria-pressed={collapsed} data-tip={`${label} (⌘B)`} onClick={() => setCollapsed(!collapsed)}>
+        <SidebarLeftLine />
       </button>
     </span>
   )

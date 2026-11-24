@@ -7,11 +7,12 @@ Entry types: **New** (screen or feature), **Changed** (redesign or behaviour cha
 ## 2026-11-24
 
 ### New
-- **Collapsible sidebar (desktop):**
+- **Collapsible sidebar (desktop), modelled on CostGraph's header:**
   - The sidebar collapses to a 64px icon rail with tooltips.
-  - The toggle sits beside each page's title (and beside "Ferno agent" on Agent and Chat). It stays hidden until you hover or tab into the title area, then slides out and nudges the title along. While the rail is collapsed it stays visible.
-  - ⌘\\ / Ctrl+\\ toggles from anywhere, and the choice is remembered.
-  - Icons don't move during the animation: sizes are set so every icon stays centred at x=32 in both states.
+  - The toggle is MingCute's `sidebar-left-line` (20px icon, 32px button): grey 300 at rest, grey 500 on hover, no fill.
+  - It sits before each page's title (and before "Ferno agent" on Agent and Chat) in a hidden slot. Hovering the title row, or tabbing to it, grows the slot to 40px and fades it in (200ms, ease-out). It waits 150ms before hiding, so a pass-by doesn't flicker, and stays hidden while the sidebar is collapsed.
+  - ⌘B / Ctrl+B toggles from anywhere, and the choice is remembered.
+  - Icons don't move during the collapse: every icon stays centred at x=32 in both states.
   - Phones keep the drawer.
 - **Public repo and hosting.** Prototype published as `ferno-env` and deployed to ferno-env.vercel.app.
 - **Morphing tabs.** Cards with tabs now reshape the existing chart instead of rebuilding it:

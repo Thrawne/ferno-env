@@ -35,7 +35,7 @@ export default function App() {
   }, [])
   // ⌘\ / Ctrl+\ toggles the sidebar from anywhere
   useEffect(() => {
-    const k = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key === '\\') { e.preventDefault(); setCollapsedState((c) => { const n = !c; try { localStorage.setItem('ferno:sidebar', n ? 'collapsed' : 'open') } catch { /* */ } return n }) } }
+    const k = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'b') { e.preventDefault(); setCollapsedState((c) => { const n = !c; try { localStorage.setItem('ferno:sidebar', n ? 'collapsed' : 'open') } catch { /* */ } return n }) } }
     window.addEventListener('keydown', k)
     return () => window.removeEventListener('keydown', k)
   }, [])
