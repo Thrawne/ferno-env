@@ -20,7 +20,7 @@ Entry types: **New** (screen or feature), **Changed** (redesign or behaviour cha
 - **Favicon:** now the workspace logo from the sidebar (exported from Figma).
 - **Reports layout now matches Overview:**
   - Report rows are separate rounded cards on the grey fill, spanning the full width of the page header.
-  - The detail page is one grouped block: the main column and the side panel share the same grey fill. The side panel stretches so both columns end on the same line.
+  - The detail page is one grouped block: the main column and the side panel share the same grey fill. The side panel stretches so both columns end on the same line. The evidence-trail steps are grouped on the grey fill too, instead of separate outlined boxes.
   - The report count sits beside the "Reports" title, morphing with torph, instead of in a separate "REPORTS · 6" row. `PageHeader` takes an optional `count` for this.
 
 ## 2026-11-24

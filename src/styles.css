@@ -624,8 +624,8 @@ a { color: inherit; text-decoration: none; }
 .rp-running { font-weight: 500; }
 .rp-progress { height: 4px; border-radius: 4px; background: var(--n-75); margin-top: 14px; overflow: hidden; }
 .rp-progress i { display: block; height: 100%; background: var(--s2); border-radius: 4px; transition: width .6s var(--ease-out); }
-.rp-steps { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
-.rp-step { border-radius: 10px; box-shadow: inset 0 0 0 1px var(--border); overflow: hidden; animation: chart-in .35s var(--ease-out) both; }
+.rp-steps { list-style: none; margin: 12px 0 0; padding: 2px; display: grid; gap: 2px; background: var(--group); border-radius: 12px; }
+.rp-step { border-radius: 10px; background: #fff; overflow: hidden; animation: chart-in .35s var(--ease-out) both; }
 .rp-step-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; background: none; }
 .rp-step-head:hover { background: #fcfbf9; }
 .rp-step-n { width: 22px; height: 22px; border-radius: 99px; background: var(--n-75); display: grid; place-items: center; font-size: 11px; color: var(--n-700); flex-shrink: 0; }
