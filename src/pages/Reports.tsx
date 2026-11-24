@@ -191,8 +191,8 @@ export function ReportDetail({ id }: { id: string }) {
         <span className="rp-chip mono" style={{ fontSize: 12 }}>Data through {r.dataThrough}</span>
       </div>
 
-      <div className="rp-detail">
-        <div className="group rp-col">
+      <div className="group rp-detail">
+        <div className="rp-col">
           {r.status === 'failed' && (
             <section className="card rp-sec rp-error">
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -279,7 +279,7 @@ export function ReportDetail({ id }: { id: string }) {
           </section>
         </div>
 
-        <aside className="group rp-side">
+        <aside className="rp-side">
           <section className="card rp-sec">
             <div className="eyebrow">Investigated lead</div>
             <div className="rp-lead">

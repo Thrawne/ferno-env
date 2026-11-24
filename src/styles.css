@@ -610,9 +610,10 @@ a { color: inherit; text-decoration: none; }
 .rp-back { margin-left: -8px; color: var(--muted); }
 .rp-h1 { font-size: 30px; line-height: 38px; max-width: 820px; }
 .rp-badges { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 24px; }
-.rp-detail { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
-.rp-col, .rp-side { gap: 2px; }
-.rp-side { position: sticky; top: 24px; }
+.rp-detail { grid-template-columns: minmax(0, 1fr) 320px; gap: 2px; align-items: stretch; }
+.rp-col, .rp-side { display: grid; gap: 2px; }
+.rp-side { display: flex; flex-direction: column; }
+.rp-side > .card:last-child { flex: 1; }
 .rp-sec { box-shadow: none; }
 .rp-h2 { display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 15px; }
 .rp-p { color: var(--n-700); margin: 8px 0 0; line-height: 22px; }

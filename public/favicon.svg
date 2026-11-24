@@ -1,29 +1,26 @@
-<svg width="32" height="32" viewBox="2 2 13.5 13.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="Ferno/Sidebar">
 <g id="Container">
-<g id="List">
-<g id="Link">
-<g id="mingcute:chat-4-ai-line">
-<g id="Frame 2147226719">
-<g id="Frame 2147226717">
-<rect id="Rectangle 32" x="2" y="2" width="4.5" height="4.5" fill="#F5B07A"/>
-<rect id="Rectangle 33" x="6.49994" y="2" width="4.5" height="4.5" fill="#FFE6D4"/>
-<rect id="Rectangle 34" x="11.0001" y="2" width="4.5" height="4.5" fill="#D97706"/>
-</g>
-<g id="Frame 2147226718">
-<rect id="Rectangle 32_2" x="2" y="6.50012" width="4.5" height="4.5" fill="#E48D42"/>
-<rect id="Rectangle 33_2" x="6.49994" y="6.50024" width="4.5" height="4.5" fill="#D97706"/>
-<rect id="Rectangle 34_2" x="11.0001" y="6.50024" width="4.5" height="4.5" fill="#F5B07A"/>
-</g>
-<g id="Frame 2147226719_2">
-<rect id="Rectangle 32_3" x="2" y="10.9999" width="4.5" height="4.5" fill="#FFE6D4"/>
-<rect id="Rectangle 33_3" x="6.49994" y="10.9998" width="4.5" height="4.5" fill="#F5B07A"/>
-<rect id="Rectangle 34_3" x="11.0001" y="10.9998" width="4.5" height="4.5" fill="#D97706"/>
+<g id="Container_2">
+<g id="Text">
+<g id="Frame 2">
+<g clip-path="url(#clip0_0_1)">
+<rect width="24" height="24" rx="4" fill="#D97706"/>
+<rect id="Rectangle 1" opacity="0.45" x="-3" width="8" height="8" fill="white"/>
+<rect id="Rectangle 2" opacity="0.2" x="5" width="8" height="8" fill="white"/>
+<rect id="Rectangle 6" opacity="0.2" x="13" y="16" width="8" height="8" fill="white"/>
+<rect id="Rectangle 3" opacity="0.8" x="5" y="8" width="8" height="8" fill="white"/>
+<rect id="Rectangle 4" opacity="0.45" x="21" y="16" width="8" height="8" fill="white"/>
+<rect id="Rectangle 5" opacity="0.8" x="21" y="8" width="8" height="8" fill="white"/>
 </g>
 </g>
 </g>
 </g>
 </g>
 </g>
-</g>
+<defs>
+<clipPath id="clip0_0_1">
+<rect width="24" height="24" rx="4" fill="white"/>
+</clipPath>
+</defs>
 </svg>

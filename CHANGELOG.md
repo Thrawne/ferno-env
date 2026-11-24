@@ -17,10 +17,10 @@ Entry types: **New** (screen or feature), **Changed** (redesign or behaviour cha
   - **Elsewhere:** the Ferno Noticed headline morphs into the next insight. Text also morphs for the funnel "converted" summary, the chat's "Thinking…" → "Thought for 6s", the composer chips, plain-text select values, the report sort label and the report count.
 
 ### Changed
-- **Favicon:** now the Ferno Agent icon exported from Figma.
+- **Favicon:** now the workspace logo from the sidebar (exported from Figma).
 - **Reports layout now matches Overview:**
   - Report rows are separate rounded cards on the grey fill, spanning the full width of the page header.
-  - The detail page groups its sections the same way: one group for the main column and one for the side panel.
+  - The detail page is one grouped block: the main column and the side panel share the same grey fill. The side panel stretches so both columns end on the same line.
   - The report count sits beside the "Reports" title, morphing with torph, instead of in a separate "REPORTS · 6" row. `PageHeader` takes an optional `count` for this.
 
 ## 2026-11-24
