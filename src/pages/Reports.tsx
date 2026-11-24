@@ -14,7 +14,7 @@ const VERDICT: Record<Report['verdict'], { label: string; tone: string }> = {
 const IMPACT = { high: { label: 'High impact', n: 4 }, medium: { label: 'Medium impact', n: 3 }, low: { label: 'Low impact', n: 2 } }
 
 /** Pixel meter (Figma 227:35130): 5 squares; filled ones step up the accent ramp, darkest at the fill edge. */
-const PX_RAMP = ['var(--accent-200)', 'var(--accent-300)', 'var(--accent-400)', 'var(--accent-500)', 'var(--accent-600)']
+const PX_RAMP = ['var(--accent-100)', 'var(--accent-200)', 'var(--accent-300)', 'var(--accent-400)', 'var(--accent-500)']
 function PixelMeter({ impact }: { impact: NonNullable<Report['impact']> }) {
   const n = IMPACT[impact].n
   return (

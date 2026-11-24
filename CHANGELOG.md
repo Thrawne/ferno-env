@@ -25,7 +25,7 @@ Entry types: **New** (screen or feature), **Changed** (redesign or behaviour cha
   - **Report rows follow Figma 227:34690:**
     - The source is a plain icon and label, not a pill.
     - Change is a two-cell box (change | rate) with a full-height divider.
-    - Impact is a 5-square pixel meter. Filled squares step up the accent ramp (accent-300 → 600, darkest at the fill edge); high fills 4, medium 3, low 2. It sits on the right under the chevron, and drops below the footer on phones.
+    - Impact is a 5-square pixel meter. Filled squares step up the accent ramp, ending at accent-500 at the fill edge (high: accent-200 → 500); high fills 4, medium 3, low 2. It sits on the right under the chevron, and drops below the footer on phones.
     - The date moved into the right-hand column, right-aligned with the chevron and level with the top row.
 
 ## 2026-11-24
