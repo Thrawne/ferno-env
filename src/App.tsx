@@ -8,9 +8,9 @@ import { Analytics } from './pages/Analytics'
 import { Heatmaps } from './pages/Heatmaps'
 import { AgentHome, Chat, type Msg } from './pages/Agent'
 import { SignIn } from './pages/SignIn'
+import { ReportDetail, Reports } from './pages/Reports'
 
 const TITLES: Record<string, [string, string]> = {
-  reports: ['Reports', 'Saved investigations and the evidence behind them.'],
   members: ['Members', 'Who can see this workspace and what they can change.'],
   'api-keys': ['API Keys', 'Keys your apps use to send events to Ferno.'],
   integrations: ['Integrations', 'Connect the tools and sources Ferno reads from.'],
@@ -26,6 +26,9 @@ export default function App() {
   const [range, setRangeState] = useState<Range>('7d')
   const [mode, setModeState] = useState<Mode>('filled')
   const [loading, setLoading] = useState(false)
+  // a date-range change refreshes the charts only; KPI numbers morph in place
+  const [refreshing, setRefreshing] = useState(false)
+  const refreshTimer = useRef<number>(0)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [navOpen, setNavOpen] = useState(false)
   const [collapsed, setCollapsedState] = useState(() => { try { return localStorage.getItem('ferno:sidebar') === 'collapsed' } catch { return false } })
@@ -60,7 +63,12 @@ export default function App() {
     timer.current = window.setTimeout(() => setLoading(false), ms)
   }, [])
 
-  const setRange = (r: Range) => { setRangeState(r); flash(700) }
+  const setRange = (r: Range) => {
+    setRangeState(r)
+    setRefreshing(true)
+    clearTimeout(refreshTimer.current)
+    refreshTimer.current = window.setTimeout(() => setRefreshing(false), 700)
+  }
   const setMode = (m: Mode) => {
     if (m === 'loading') { setModeState('filled'); flash(2400); return }
     setModeState(m); setLoading(false)
@@ -72,13 +80,15 @@ export default function App() {
   }
 
   if (route === 'signin') {
-    return <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, collapsed, setCollapsed }}><SignIn /></AppCtx.Provider>
+    return <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, refreshing, collapsed, setCollapsed }}><SignIn /></AppCtx.Provider>
   }
 
   let page
   if (route === 'overview') page = <Overview ask={ask} />
   else if (route === 'analytics') page = <Analytics />
   else if (route === 'heatmaps') page = <Heatmaps />
+  else if (route === 'reports') page = <Reports />
+  else if (route.startsWith('report/')) page = <ReportDetail id={route.slice(7)} />
   else if (route === 'agent') page = <AgentHome onAsk={ask} />
   else if (route === 'chat') page = msgs.length ? <Chat msgs={msgs} onAsk={ask} /> : <AgentHome onAsk={ask} />
   else {
@@ -95,7 +105,7 @@ export default function App() {
   }
 
   return (
-    <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, collapsed, setCollapsed }}>
+    <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, refreshing, collapsed, setCollapsed }}>
       <div className={'shell' + (navOpen ? ' nav-open' : '') + (collapsed ? ' collapsed' : '')}>
         <header className="topbar">
           <button className="btn icon-btn btn-ghost" aria-label="Open menu" onClick={() => setNavOpen(true)}><Menu size={18} /></button>

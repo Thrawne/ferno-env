@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
+import { TextMorph } from 'torph/react'
 import { ArrowRight, Pencil, Plus, Sparkles, X, Zap, Users, Activity } from 'lucide-react'
 import { LiveChart } from '../charts/LiveChart'
 import { StackedBars } from '../charts/BarChart'
 import { Funnel } from '../charts/Funnel'
 import { fmtFull, fmt } from '../charts/common'
-import { DEFAULT_FUNNEL, EVENT_SERIES, FUNNEL_EVENTS, INSIGHTS, RANGE_LABEL, funnelCounts, labelsFor, overview, rangeSpan } from '../data'
+import { DEFAULT_FUNNEL, EVENT_SERIES, FUNNEL_EVENTS, INSIGHTS, RANGE_LABEL, funnelCounts, labelsFor, overview, rangeSpan, rangeDelta } from '../data'
 import { Banner, Body, Kpi, PageHeader, PixelCorner, RangeSelect, Select, useApp } from '../components/ui'
 
 const sum = (a: number[]) => a.reduce((x, y) => x + y, 0)
@@ -24,9 +25,9 @@ export function Overview({ ask }: { ask: (q: string) => void }) {
       <div className="group">
         <Banner />
         <div className="grid g-kpi3">
-          <Kpi icon={<Zap size={14} />} label="Total Events" value={totalEvents} format={(n) => fmtFull(Math.round(n))} delta={12.4} foot={rangeSpan(range)} spark={d.events.pageviews} />
-          <Kpi icon={<Users size={14} />} label="Active Users" value={sum(d.active)} format={(n) => fmtFull(Math.round(n))} delta={8.1} foot={rangeSpan(range)} spark={d.active} sparkColor="var(--s2)" />
-          <Kpi icon={<Activity size={14} />} label="Conversion" value={18.2} format={(n) => n.toFixed(1) + '%'} delta={-2.1} foot="Landing → Checkout" spark={d.events.signups} sparkColor="var(--s3)" />
+          <Kpi icon={<Zap size={14} />} label="Total Events" value={totalEvents} format={(n) => fmtFull(Math.round(n))} delta={rangeDelta(12.4, range)} foot={rangeSpan(range)} spark={d.events.pageviews} />
+          <Kpi icon={<Users size={14} />} label="Active Users" value={sum(d.active)} format={(n) => fmtFull(Math.round(n))} delta={rangeDelta(8.1, range)} foot={rangeSpan(range)} spark={d.active} sparkColor="var(--s2)" />
+          <Kpi icon={<Activity size={14} />} label="Conversion" value={18.2} format={(n) => n.toFixed(1) + '%'} delta={rangeDelta(-2.1, range)} foot="Landing → Checkout" spark={d.events.signups} sparkColor="var(--s3)" />
         </div>
 
         <div className="grid g-2w">
@@ -99,7 +100,7 @@ function FunnelCard() {
         <h3 className="card-title">Conversion Funnel</h3>
         {!showBuilder && !loading && (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span className="card-sub num">{fmt(counts[counts.length - 1].value)} converted · {((counts[counts.length - 1].value / counts[0].value) * 100).toFixed(1)}%</span>
+            <span className="card-sub num"><TextMorph numbers>{`${fmt(counts[counts.length - 1].value)} converted · ${((counts[counts.length - 1].value / counts[0].value) * 100).toFixed(1)}%`}</TextMorph></span>
             <button className="btn" onClick={() => { setDraft(steps!); setEditing(true) }}><Pencil size={14} />Edit</button>
           </div>
         )}
@@ -173,10 +174,11 @@ function Noticed({ onDismiss, onOpen }: { onDismiss: () => void; onOpen: (q: str
           </button>
         ))}
       </div>
-      <div key={i} className="noticed-slide">
+      <div>
         <div className="noticed-eyebrow"><Sparkles size={14} />Ferno noticed</div>
-        <h3 className="noticed-title">{it.title}</h3>
-        <p className="noticed-body" style={{ margin: 0 }}>{it.body}</p>
+        {/* torph: the headline morphs into the next insight instead of swapping */}
+        <TextMorph as="h3" className="noticed-title">{it.title}</TextMorph>
+        <p key={i} className="noticed-body noticed-slide" style={{ margin: 0 }}>{it.body}</p>
       </div>
       <div className="noticed-actions">
         <button className="btn" style={{ color: 'var(--fg)' }} onClick={() => onOpen(it.q)}>Open report<ArrowRight size={14} /></button>

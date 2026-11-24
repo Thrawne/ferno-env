@@ -180,3 +180,10 @@ export const INSIGHTS = [
 ]
 
 export const HEAT_PAGES = ['tokencrafter.vercel.app', 'tokencrafter.vercel.app/pricing', 'tokencrafter.vercel.app/app']
+
+/** Period-over-period change for a KPI, varied per range so switching ranges visibly moves it. */
+export function rangeDelta(base: number, range: Range) {
+  const k = { '24h': 0.45, '7d': 1, '30d': 0.72, '90d': 1.35 }[range]
+  const v = base * k + (range === '24h' ? -1.3 : range === '90d' ? 0.8 : 0)
+  return Math.round(v * 10) / 10
+}

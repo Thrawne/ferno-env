@@ -16,8 +16,9 @@ An interactive prototype of the **Ferno** redesign: the screens from the Figma r
 | Chat | `#/chat` | Thinking state, expandable steps, streamed answer, a chart per answer |
 | Heatmaps | `#/heatmaps` | Page picker, heat layer, rage/dead-click markers, movement paths, desktop/mobile |
 | Analytics | `#/analytics` | Traffic vs previous period (Liveline), pages, sources, technology, region, weekly retention |
+| Reports | `#/reports`, `#/report/:id` | Investigation list with sort and status filter; report detail with findings, baseline-vs-current chart, next steps, uncertainties, expandable evidence trail, investigated lead and sample-size check; failed reports can be re-run |
 
-Reports, Members, API Keys, Integrations, Docs and Settings show a placeholder for now.
+Members, API Keys, Integrations, Docs and Settings show a placeholder for now.
 
 **Prototype controls:** the floating **Data** switch (bottom right) flips every screen between *Filled*, *Loading* (the pixel squares fill in) and *Empty* (the Figma empty states). The date-range menu changes the data too.
 

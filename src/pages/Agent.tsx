@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { TextMorph } from 'torph/react'
 import { ArrowUp, ArrowUpRight, Check, ChevronRight, History, Plus, Shuffle, Paperclip, FileText, Image } from 'lucide-react'
 import { LiveChart } from '../charts/LiveChart'
 import { StackedBars } from '../charts/BarChart'
 import { Funnel } from '../charts/Funnel'
-import { FernoMark, Popover, SidebarToggle } from '../components/ui'
+import { FernoMark, Popover, SidebarToggle, useApp } from '../components/ui'
 import { RecentThumb } from '../components/RecentThumb'
 import { RANGES, RANGE_LABEL, type Range } from '../data'
 import { RECENT, SUGGESTION_SETS, answerFor, type ChartSpec } from './answers'
@@ -35,13 +36,13 @@ export function Composer({ onSend, autoFocus }: { onSend: (q: string) => void; a
             </Popover>
           </div>
           <div className="select-wrap" ref={rangeRef}>
-            <button className="chip" aria-expanded={menu === 'range'} onClick={() => setMenu(menu === 'range' ? null : 'range')}>{RANGE_LABEL[range]}<ArrowUpRight size={12} /></button>
+            <button className="chip" aria-expanded={menu === 'range'} onClick={() => setMenu(menu === 'range' ? null : 'range')}><TextMorph>{RANGE_LABEL[range]}</TextMorph><ArrowUpRight size={12} /></button>
             <Popover anchor={rangeRef} open={menu === 'range'} onClose={close} matchWidth={false} minWidth={160} label="Date range">
               {RANGES.map((r) => <button key={r} className="menu-item" onClick={() => { setRange(r); close() }}>{RANGE_LABEL[r]}{r === range && <Check size={15} strokeWidth={2.5} className="check" />}</button>)}
             </Popover>
           </div>
           <div className="select-wrap" ref={scopeRef}>
-            <button className="chip" aria-expanded={menu === 'scope'} onClick={() => setMenu(menu === 'scope' ? null : 'scope')}>{scope}<ArrowUpRight size={12} /></button>
+            <button className="chip" aria-expanded={menu === 'scope'} onClick={() => setMenu(menu === 'scope' ? null : 'scope')}><TextMorph>{scope}</TextMorph><ArrowUpRight size={12} /></button>
             <Popover anchor={scopeRef} open={menu === 'scope'} onClose={close} matchWidth={false} minWidth={160} label="Events">
               {['All events', 'Sign-ups', 'Page views', 'Custom events'].map((x) => <button key={x} className="menu-item" onClick={() => { setScope(x); close() }}>{x}{x === scope && <Check size={15} strokeWidth={2.5} className="check" />}</button>)}
             </Popover>
@@ -56,6 +57,7 @@ export function Composer({ onSend, autoFocus }: { onSend: (q: string) => void; a
 
 /* ───────── Agent home ───────── */
 export function AgentHome({ onAsk }: { onAsk: (q: string) => void }) {
+  const { go } = useApp()
   const [set, setSet] = useState(0)
   return (
     <div className="fade-page" style={{ minHeight: '100%', display: 'grid', alignContent: 'center', padding: '64px 0' }}>
@@ -78,7 +80,7 @@ export function AgentHome({ onAsk }: { onAsk: (q: string) => void }) {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '40px 0 12px' }}>
           <span style={{ display: 'flex', gap: 8, alignItems: 'center', color: 'var(--muted)' }}><History size={14} />Recent</span>
-          <button className="btn btn-ghost" style={{ color: 'var(--accent-600)', height: 24, padding: '0 4px' }}>View all</button>
+          <button className="btn btn-ghost" style={{ color: 'var(--accent-600)', height: 24, padding: '0 4px' }} onClick={() => go('reports')}>View all</button>
         </div>
         <div className="recent-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 12 }}>
           {RECENT.map((r, i) => (
@@ -164,7 +166,7 @@ function Turn({ m }: { m: Msg }) {
       <div className="msg-ai">
         <div className={'thinking' + (phase === 'thinking' ? ' live' : '')}>
           <FernoMark size={18} animate={phase === 'thinking'} />
-          <span>{phase === 'thinking' ? 'Thinking…' : 'Thought for 6s'}</span>
+          <TextMorph>{phase === 'thinking' ? 'Thinking…' : 'Thought for 6s'}</TextMorph>
         </div>
         {phase !== 'thinking' && (
           <button className="steps-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>

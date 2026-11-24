@@ -35,7 +35,7 @@ function Group({ label, items, go }: { label: string; items: typeof WORKSPACE; g
       <div className="nav-items" style={{ display: 'grid', gridTemplateRows: open ? '1fr' : '0fr', transition: 'grid-template-rows .25s cubic-bezier(.23,1,.32,1)' }}>
         <div style={{ minHeight: 0, display: 'grid', gap: 2 }}>
           {items.map((it) => (
-            <button key={it.id} className={'nav-item' + (route === it.id || (it.id === 'agent' && route === 'chat') ? ' active' : '')} onClick={() => go(it.id)}
+            <button key={it.id} className={'nav-item' + (route === it.id || (it.id === 'agent' && route === 'chat') || (it.id === 'reports' && route.startsWith('report/')) ? ' active' : '')} onClick={() => go(it.id)}
               data-tip={it.label} aria-label={collapsed ? it.label : undefined}>
               <span className="nav-ico">{it.icon}</span><span className="nav-label">{it.label}</span>
             </button>

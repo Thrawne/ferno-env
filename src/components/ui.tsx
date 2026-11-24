@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Check, ChevronsUpDown, CircleHelp } from 'lucide-react'
 import { RANGES, RANGE_LABEL, type Range } from '../data'
 import { Sparkline } from '../charts/AreaChart'
-import { useCountUp } from '../charts/common'
+import { TextMorph } from 'torph/react'
 
 /* ───────── App state ───────── */
 export type Mode = 'filled' | 'loading' | 'empty'
@@ -12,6 +12,8 @@ type Ctx = {
   range: Range; setRange: (r: Range) => void
   mode: Mode; setMode: (m: Mode) => void
   loading: boolean
+  /** charts reloading after a date-range change (numbers stay and morph) */
+  refreshing: boolean
   collapsed: boolean; setCollapsed: (c: boolean) => void
 }
 export const AppCtx = createContext<Ctx>(null!)
@@ -125,7 +127,11 @@ export function Select<T extends string>({ value, options, onChange, placeholder
       <button className="select-btn" onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open} data-open={open || undefined}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
           {icon}
-          {cur ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label ? label(cur.value) : cur.label}</span> : <span className="ph">{placeholder}</span>}
+          {cur ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{(() => {
+            const l = label ? label(cur.value) : cur.label
+            // torph: plain-text selections morph into the new choice
+            return typeof l === 'string' ? <TextMorph>{l}</TextMorph> : l
+          })()}</span> : <span className="ph">{placeholder}</span>}
         </span>
         <ChevronsUpDown size={14} />
       </button>
@@ -238,8 +244,8 @@ export function PeopleIcon() {
 
 /** Card body that swaps between loading / empty / content. */
 export function Body({ height, empty, children }: { height: number; empty: { title: string; sub: string; icon?: ReactNode }; children: ReactNode }) {
-  const { mode, loading } = useApp()
-  if (loading) return <div style={{ position: 'relative', height }}><PixelLoader /></div>
+  const { mode, loading, refreshing } = useApp()
+  if (loading || refreshing) return <div style={{ position: 'relative', height }}><PixelLoader /></div>
   if (mode === 'empty') return <div style={{ height }}><EmptyState {...empty} /></div>
   return <>{children}</>
 }
@@ -249,7 +255,6 @@ export function Kpi({ icon, label, value, format, delta, foot, spark, sparkColor
   icon: ReactNode; label: string; value: number; format: (n: number) => string; delta?: number; foot: string; spark?: number[]; sparkColor?: string
 }) {
   const { mode, loading } = useApp()
-  const v = useCountUp(mode === 'filled' && !loading ? value : 0)
   const empty = mode === 'empty'
   return (
     <div className={'card kpi' + (empty ? ' kpi-empty' : '')}>
@@ -268,10 +273,11 @@ export function Kpi({ icon, label, value, format, delta, foot, spark, sparkColor
       ) : (
         <>
           <div className="kpi-value num">
-            {format(v)}
+            {/* torph: digits roll by place value when the date range changes */}
+            <TextMorph numbers className="kpi-num">{format(value)}</TextMorph>
             {delta !== undefined && (
               <span className={'pill ' + (delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat')}>
-                {delta > 0 ? '↑' : delta < 0 ? '↓' : ''} {Math.abs(delta).toFixed(1)}%
+                {delta > 0 ? '↑' : delta < 0 ? '↓' : ''}<TextMorph numbers>{`${Math.abs(delta).toFixed(1)}%`}</TextMorph>
               </span>
             )}
           </div>

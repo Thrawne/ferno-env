@@ -4,6 +4,21 @@ Updated on every **major UI overhaul** (a new or redesigned page) and every **qu
 
 Entry types: **New** (screen or feature), **Changed** (redesign or behaviour change), **Fixed** (quality fix).
 
+## 2026-11-24 — Reports, number morphing
+
+### New
+- **Reports page** (`#/reports`), modelled on the investigations Ferno actually stores:
+  - **List:** the source (automatic or asked in chat) and the event and page it concerns; title and summary; the change (coloured by whether rising is good or bad for that metric) and the before-and-after rate; the verdict, an impact meter and the run status. Sort and status filter use the shared Popover.
+  - **Detail** (`#/report/:id`): verdict, status, score and "data through"; findings, a baseline-vs-current Liveline chart, next steps and uncertainties; an expandable evidence trail of each query and its result. A side panel shows the investigated lead (change, rate, z-score, page, source, window) and checks sample size against the 10-unique-user minimum.
+  - **Failed reports** show a plain-language error with **Run again**, instead of the raw provider error. Re-running streams in the evidence steps, then completes.
+  - **Empty and loading states,** "View all" on Ferno Agent now opens Reports, and the layout works down to phone width.
+- **Number morphing (torph):**
+  - **KPI tiles:** numbers and their change percentages now roll digit by digit when the date range changes, instead of reloading. Only the charts show the pixel loader, and the change percentages now vary by range.
+  - **Elsewhere:** the Ferno Noticed headline morphs into the next insight. Text also morphs for the funnel "converted" summary, the chat's "Thinking…" → "Thought for 6s", the composer chips, plain-text select values, the report sort label and the report count.
+
+### Changed
+- **Favicon:** now the Ferno Agent icon exported from Figma.
+
 ## 2026-11-24
 
 ### New
