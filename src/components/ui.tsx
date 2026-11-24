@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronsUpDown, CircleHelp } from 'lucide-react'
+import { Check, ChevronsUpDown, CircleHelp, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { RANGES, RANGE_LABEL, type Range } from '../data'
 import { Sparkline } from '../charts/AreaChart'
 import { useCountUp } from '../charts/common'
@@ -12,6 +12,7 @@ type Ctx = {
   range: Range; setRange: (r: Range) => void
   mode: Mode; setMode: (m: Mode) => void
   loading: boolean
+  collapsed: boolean; setCollapsed: (c: boolean) => void
 }
 export const AppCtx = createContext<Ctx>(null!)
 export const useApp = () => useContext(AppCtx)
@@ -293,11 +294,33 @@ export function Banner() {
   )
 }
 
+/* ───────── Sidebar toggle ─────────
+ * Lives beside each page's title. Hidden until you hover or tab into the
+ * title area, then slides out and nudges the title along; while the sidebar
+ * is collapsed it stays visible so you can always get it back. ⌘\ / Ctrl+\
+ * toggles from anywhere. Desktop only (phones use the drawer).
+ */
+export function SidebarToggle() {
+  const { collapsed, setCollapsed } = useApp()
+  const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar'
+  return (
+    <span className="sb-toggle-slot">
+      <button className="sb-toggle" aria-label={label} aria-pressed={collapsed} data-tip={`${label}  ⌘\\`} onClick={() => setCollapsed(!collapsed)}>
+        <span className="sb-ico" data-on={!collapsed}><PanelLeftClose size={16} /></span>
+        <span className="sb-ico" data-on={collapsed}><PanelLeftOpen size={16} /></span>
+      </button>
+    </span>
+  )
+}
+
 export function PageHeader({ title, sub, right }: { title: string; sub: string; right?: ReactNode }) {
   return (
     <div className="page-header">
-      <div>
-        <h1 className="page-title">{title}</h1>
+      <div className="title-zone">
+        <div className="title-row">
+          <SidebarToggle />
+          <h1 className="page-title">{title}</h1>
+        </div>
         <p className="page-sub">{sub}</p>
       </div>
       {right}

@@ -3,7 +3,7 @@ import { ArrowUp, ArrowUpRight, Check, ChevronRight, History, Plus, Shuffle, Pap
 import { LiveChart } from '../charts/LiveChart'
 import { StackedBars } from '../charts/BarChart'
 import { Funnel } from '../charts/Funnel'
-import { FernoMark, Popover } from '../components/ui'
+import { FernoMark, Popover, SidebarToggle } from '../components/ui'
 import { RecentThumb } from '../components/RecentThumb'
 import { RANGES, RANGE_LABEL, type Range } from '../data'
 import { RECENT, SUGGESTION_SETS, answerFor, type ChartSpec } from './answers'
@@ -60,8 +60,13 @@ export function AgentHome({ onAsk }: { onAsk: (q: string) => void }) {
   return (
     <div className="fade-page" style={{ minHeight: '100%', display: 'grid', alignContent: 'center', padding: '64px 0' }}>
       <div className="agent-wrap" style={{ width: '100%' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--accent-600)' }}><FernoMark size={18} />Ferno agent</div>
-        <h1 className="page-title" style={{ marginTop: 8 }}>What should we look into, Alex?</h1>
+        <div className="agent-head">
+          <div className="title-row">
+            <SidebarToggle />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--accent-600)' }}><FernoMark size={18} />Ferno agent</div>
+          </div>
+          <h1 className="page-title" style={{ marginTop: 8 }}>What should we look into, Alex?</h1>
+        </div>
         <p className="page-sub" style={{ marginBottom: 24 }}>Ask a plain-language question. Ferno will answer directly or bring in the investigator.</p>
         <Composer onSend={onAsk} autoFocus />
         <div key={set} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
@@ -110,6 +115,10 @@ export function Chat({ msgs, onAsk }: { msgs: Msg[]; onAsk: (q: string) => void 
   return (
     <div className="fade-page" style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
       <div ref={scroller} className="agent-wrap chat-scroll" style={{ width: '100%', flex: 1, paddingBottom: 40 }}>
+        <div className="chat-head title-row">
+          <SidebarToggle />
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--accent-600)' }}><FernoMark size={18} />Ferno agent</span>
+        </div>
         {msgs.map((m) => <Turn key={m.id} m={m} />)}
       </div>
       <div className="chat-dock">

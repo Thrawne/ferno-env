@@ -28,6 +28,17 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [navOpen, setNavOpen] = useState(false)
+  const [collapsed, setCollapsedState] = useState(() => { try { return localStorage.getItem('ferno:sidebar') === 'collapsed' } catch { return false } })
+  const setCollapsed = useCallback((c: boolean) => {
+    setCollapsedState(c)
+    try { localStorage.setItem('ferno:sidebar', c ? 'collapsed' : 'open') } catch { /* private mode */ }
+  }, [])
+  // ⌘\ / Ctrl+\ toggles the sidebar from anywhere
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key === '\\') { e.preventDefault(); setCollapsedState((c) => { const n = !c; try { localStorage.setItem('ferno:sidebar', n ? 'collapsed' : 'open') } catch { /* */ } return n }) } }
+    window.addEventListener('keydown', k)
+    return () => window.removeEventListener('keydown', k)
+  }, [])
   const timer = useRef<number>(0)
 
   useEffect(() => {
@@ -61,7 +72,7 @@ export default function App() {
   }
 
   if (route === 'signin') {
-    return <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading }}><SignIn /></AppCtx.Provider>
+    return <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, collapsed, setCollapsed }}><SignIn /></AppCtx.Provider>
   }
 
   let page
@@ -84,8 +95,8 @@ export default function App() {
   }
 
   return (
-    <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading }}>
-      <div className={'shell' + (navOpen ? ' nav-open' : '')}>
+    <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, collapsed, setCollapsed }}>
+      <div className={'shell' + (navOpen ? ' nav-open' : '') + (collapsed ? ' collapsed' : '')}>
         <header className="topbar">
           <button className="btn icon-btn btn-ghost" aria-label="Open menu" onClick={() => setNavOpen(true)}><Menu size={18} /></button>
           <WsTile size={24} />
