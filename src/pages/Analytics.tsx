@@ -34,7 +34,7 @@ export function Analytics() {
           <Kpi icon={<Users size={14} />} label="Visitors" value={d.totals.visitors} format={(n) => fmtFull(Math.round(n))} delta={rangeDelta(14.2, range)} foot={span} />
           <Kpi icon={<Eye size={14} />} label="Page Views" value={d.totals.views} format={(n) => fmtFull(Math.round(n))} delta={rangeDelta(9.8, range)} foot={span} />
           <Kpi icon={<Layers size={14} />} label="Sessions" value={d.totals.sessions} format={(n) => fmtFull(Math.round(n))} delta={rangeDelta(11.0, range)} foot={span} />
-          <Kpi icon={<LogOut size={14} />} label="Bounce Rate" value={d.totals.bounce} format={(n) => n.toFixed(1) + '%'} delta={rangeDelta(-3.2, range)} foot="Lower is better" />
+          <Kpi icon={<LogOut size={14} />} label="Bounce Rate" lowerIsBetter value={d.totals.bounce} format={(n) => n.toFixed(1) + '%'} delta={rangeDelta(-3.2, range)} foot="Lower is better" />
           <Kpi icon={<Clock size={14} />} label="Avg. Session" value={d.totals.avgSession} format={(n) => `${Math.floor(n / 60)}m ${Math.round(n % 60)}s`} delta={rangeDelta(4.6, range)} foot={span} />
           <Kpi icon={<FileText size={14} />} label="Pages / Session" value={d.totals.pps} format={(n) => n.toFixed(2)} delta={rangeDelta(0, range)} foot={span} />
         </div>

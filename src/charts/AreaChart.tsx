@@ -51,7 +51,7 @@ export function AreaChart({ series, labels, height = 280, format = fmtFull, fill
             ))}
             <clipPath id={`clip-${uid}`}>
               <rect x={-4} y={-10} height={ih + 20} width={iw + 8}
-                style={{ transformBox: 'fill-box', transformOrigin: 'left', animation: 'reveal-x .9s cubic-bezier(.23,1,.32,1) both' }} />
+                style={{ transformBox: 'fill-box', transformOrigin: 'left', animation: 'reveal-x .5s cubic-bezier(.23,1,.32,1) both' }} />
             </clipPath>
           </defs>
           <g transform={`translate(${pad.l},${pad.t})`}>
@@ -101,7 +101,7 @@ export function AreaChart({ series, labels, height = 280, format = fmtFull, fill
   )
 }
 
-/** Calm sparkline for KPI tiles: smoothed, full-width strip, pulsing end dot. Decorative — the number carries the value. */
+/** Calm sparkline for KPI tiles: smoothed, full-width strip, a still end dot (no pulse: several tiles pulsing at once competes for attention). Decorative — the number carries the value. */
 export function Sparkline({ values, color = '#d97706', height = 40 }: { values: number[]; color?: string; height?: number }) {
   const [ref, width] = useWidth<HTMLDivElement>()
   const uid = useId().replace(/:/g, '')
@@ -132,10 +132,6 @@ export function Sparkline({ values, color = '#d97706', height = 40 }: { values: 
             <path d={ar} fill={`url(#sp-${uid})`} />
             <path d={ln} fill="none" stroke={color} strokeWidth={1.75} strokeLinecap="round" />
           </g>
-          <circle cx={ex} cy={ey} r={3} fill={color} opacity={0.35}>
-            <animate attributeName="r" values="3;8;3" dur="2s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values=".35;0;.35" dur="2s" repeatCount="indefinite" />
-          </circle>
           <circle cx={ex} cy={ey} r={3} fill={color} stroke="#fff" strokeWidth={1.5} />
         </svg>
       )}

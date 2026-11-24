@@ -60,7 +60,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="ws-switch" ref={wsRef}>
         <button className="ws-switch-btn" onClick={() => setWsOpen((o) => !o)} data-tip="Ennead · Tokencraft">
           <WsTile />
-          <span className="nav-label"><div className="t">Ennead</div><div className="s">Tokencraft</div></span>
+          <span className="nav-label"><span className="t">Ennead</span><span className="s">Tokencraft</span></span>
         </button>
         <button className="ws-chev" aria-label="Switch workspace" onClick={() => setWsOpen((o) => !o)}><ChevronsUpDown size={14} /></button>
         <Popover anchor={wsRef} open={wsOpen} onClose={closeWs} label="Projects">
@@ -84,7 +84,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="select-wrap" ref={userRef}>
         <button className="user-card" onClick={() => setUserOpen((o) => !o)} data-tip="Alex Morgan">
           <UserTile />
-          <span className="nav-label" style={{ minWidth: 0, flex: 1 }}><div className="t">Alex Morgan</div><div className="s">alex@tokencraft.app</div></span>
+          <span className="nav-label" style={{ minWidth: 0, flex: 1 }}><span className="t">Alex Morgan</span><span className="s">alex@tokencraft.app</span></span>
           <ChevronsUpDown className="user-chev" size={14} color="var(--n-600)" />
         </button>
         <Popover anchor={userRef} open={userOpen} onClose={closeUser} label="Account">

@@ -31,7 +31,8 @@ export type Report = {
   recommendations: string[]
   uncertainties: string
   evidence: { tool: string; at: string; query: string; result: string }[]
-  chart?: { labels: string[]; base: number[]; current: number[] }
+  /** step: seconds between points (defaults to a day) */
+  chart?: { labels: string[]; base: number[]; current: number[]; step?: number }
   error?: string
   question?: string
 }
@@ -61,7 +62,7 @@ const INITIAL: Report[] = [
       { tool: 'break down by target', at: 'Nov 24, 4:30 AM', query: 'breakdown("dead_click", by="element", page="/pricing")', result: 'label.billing-toggle 62 · h1 4 · footer link 2' },
       { tool: 'exit rate after event', at: 'Nov 24, 4:30 AM', query: 'exit_rate(after="dead_click", page="/pricing")', result: '29.3% vs 11.0% baseline' },
     ],
-    chart: { labels: hours, base: [0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0], current: [2, 1, 4, 6, 9, 8, 7, 6, 8, 7, 5, 5] },
+    chart: { step: 7200, labels: hours, base: [0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0], current: [2, 1, 4, 6, 9, 8, 7, 6, 8, 7, 5, 5] },
   },
   {
     id: 'signup-dip',

@@ -4,6 +4,56 @@ Updated on every **major UI overhaul** (a new or redesigned page) and every **qu
 
 Entry types: **New** (screen or feature), **Changed** (redesign or behaviour change), **Fixed** (quality fix).
 
+## 2026-11-24 — Design audit pass
+
+### Fixed
+- **Bounce rate showed red when it fell;** KPIs now take `lowerIsBetter`.
+- **Report charts:** they showed a single time label, because hourly data sat on a daily scale. `LiveChart` now takes a `step`. They also get a baseline-average reference line, so the zoomed axis can't exaggerate a change.
+- **Funnel editor:** disabled controls (Save Funnel, heatmap layers) now look disabled, and the editor has Cancel.
+- **Invalid markup:** buttons wrapped block elements. Report rows and Recent cards are now links, and the sidebar buttons use inline markup.
+- **Contrast** (WCAG AA):
+  - Light grey text darkened to #737373 (4.7:1, was 3.5:1), and sidebar section labels to #6E6E6E.
+  - Darker blue on the "Investigating" chip (5.9:1).
+  - Lighter background behind the green "up" pill (4.6:1).
+  - Solid white text on the Ferno Noticed card.
+  - The filter count badge moved to accent-600.
+  - Empty meter squares are now visible.
+- **Empty mode:**
+  - The Noticed card says "Nothing to flag yet".
+  - Agent's Recent section shows an empty line.
+  - Report pages show "No reports yet".
+  - Chat answers that there's no activity yet.
+- **Chat:** going back to the chat no longer replays answers you've already seen.
+- **Conversion:** now varies with the date range and agrees with the funnel.
+- **Heatmap totals:** they follow the selected page and range, and morph when they change.
+- **Number formatting:** "1,420 → 1,390", and big changes drop the decimal ("↑1,033%").
+
+### Changed
+- **Copy:**
+  - Removed the "Hover to scrub · tap a chip" hint.
+  - The chat fallback no longer talks about the prototype, and "Tested the product 3 times, ran 4 commands" is now "Ran 4 queries".
+  - Running reports drop the duplicate "In progress" pill.
+  - The sample-size note is one line.
+  - Placeholder pages say "Coming soon", and spelling is US English throughout.
+- **Visual consistency:**
+  - The collapsed sidebar has one divider between groups.
+  - Legends use the same chips as Liveline.
+  - The bar chart's latest-total tag now says what it is ("Nov 24 · 2,380").
+  - Recent cards use a neutral hover, and the Data switcher uses the shared popover shadow.
+- **Ferno Noticed card:**
+  - The headline and body fade in together (0.25s) instead of morphing letter by letter.
+  - The progress bar runs on CSS.
+  - It pauses on hover and keyboard focus, and doesn't auto-rotate under reduced motion.
+  - When stacked, it sizes to its content.
+- **Motion:**
+  - Pages fade in over 0.15s instead of fading and sliding over 0.35s.
+  - Chart reveals are shorter.
+  - Sparklines no longer pulse.
+
+### Not changed
+- **Idle Liveline charts:** I looked into pausing them, but Liveline redraws every frame no matter what (it only stops when the tab is hidden), so a prop can't idle it.
+- **Sidebar toggle colour:** it stays grey 300, as chosen (1.8:1).
+
 ## 2026-11-24 — Reports, number morphing
 
 ### New

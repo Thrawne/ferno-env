@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { TextMorph } from 'torph/react'
 import { ArrowRight, Pencil, Plus, Sparkles, X, Zap, Users, Activity } from 'lucide-react'
 import { LiveChart } from '../charts/LiveChart'
 import { StackedBars } from '../charts/BarChart'
 import { Funnel } from '../charts/Funnel'
 import { fmtFull, fmt } from '../charts/common'
-import { DEFAULT_FUNNEL, EVENT_SERIES, FUNNEL_EVENTS, INSIGHTS, RANGE_LABEL, funnelCounts, labelsFor, overview, rangeSpan, rangeDelta } from '../data'
+import { DEFAULT_FUNNEL, EVENT_SERIES, FUNNEL_EVENTS, INSIGHTS, RANGE_LABEL, funnelCounts, labelsFor, overview, rangeSpan, rangeDelta, CONVERSION } from '../data'
 import { Banner, Body, Kpi, PageHeader, PixelCorner, RangeSelect, Select, useApp } from '../components/ui'
 
 const sum = (a: number[]) => a.reduce((x, y) => x + y, 0)
@@ -27,14 +27,13 @@ export function Overview({ ask }: { ask: (q: string) => void }) {
         <div className="grid g-kpi3">
           <Kpi icon={<Zap size={14} />} label="Total Events" value={totalEvents} format={(n) => fmtFull(Math.round(n))} delta={rangeDelta(12.4, range)} foot={rangeSpan(range)} spark={d.events.pageviews} />
           <Kpi icon={<Users size={14} />} label="Active Users" value={sum(d.active)} format={(n) => fmtFull(Math.round(n))} delta={rangeDelta(8.1, range)} foot={rangeSpan(range)} spark={d.active} sparkColor="var(--s2)" />
-          <Kpi icon={<Activity size={14} />} label="Conversion" value={18.2} format={(n) => n.toFixed(1) + '%'} delta={rangeDelta(-2.1, range)} foot="Landing → Checkout" spark={d.events.signups} sparkColor="var(--s3)" />
+          <Kpi icon={<Activity size={14} />} label="Conversion" value={CONVERSION[range]} format={(n) => n.toFixed(1) + '%'} delta={rangeDelta(-2.1, range)} foot="Landing → Checkout" spark={d.events.signups} sparkColor="var(--s3)" />
         </div>
 
         <div className="grid g-2w">
           <div className="card">
             <div className="card-head">
               <h3 className="card-title">Active Users</h3>
-              <span className="card-sub">Hover to scrub · tap a chip to hide a line</span>
             </div>
             <div style={{ marginTop: 16 }}>
               <Body height={300} empty={{ title: 'No active users this period', sub: `No users were active in the ${RANGE_LABEL[range].toLowerCase()}. Try a longer period.` }}>
@@ -49,7 +48,7 @@ export function Overview({ ask }: { ask: (q: string) => void }) {
             <div className="card-head">
               <h3 className="card-title">Event Activity</h3>
               {mode === 'filled' && !loading && (
-                <div className="legend">
+                <div className="legend chips">
                   {EVENT_SERIES.map((s) => (
                     <button key={s.key} aria-pressed={!hidden.has(s.key)} onClick={() => toggle(s.key)}>
                       <i className="swatch" style={{ background: s.color }} />{s.label}
@@ -133,6 +132,9 @@ function FunnelCard() {
                   <Plus size={14} />Save Funnel
                 </button>
               </div>
+              {editing && steps && (
+                <button className="btn btn-ghost" style={{ marginTop: 12 }} onClick={() => { setEditing(false); setDraft([]) }}>Cancel</button>
+              )}
               {mode === 'empty' && <p className="card-sub" style={{ marginTop: 12 }}>Funnels fill in once events arrive.</p>}
             </div>
           </div>
@@ -145,40 +147,46 @@ function FunnelCard() {
 }
 
 function Noticed({ onDismiss, onOpen }: { onDismiss: () => void; onOpen: (q: string) => void }) {
+  const { mode } = useApp()
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)
-  const [p, setP] = useState(0)
-  useEffect(() => {
-    if (paused) return
-    let raf = 0
-    let last = performance.now()
-    const tick = (t: number) => {
-      setP((v) => {
-        const nv = v + (t - last) / 7000
-        if (nv >= 1) { setI((x) => (x + 1) % INSIGHTS.length); return 0 }
-        return nv
-      })
-      last = t
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [paused])
+  // auto-rotating content: pause on hover and keyboard focus, and never rotate under reduced motion
+  const [reduce] = useState(() => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const next = () => setI((x) => (x + 1) % INSIGHTS.length)
+
+  if (mode === 'empty') {
+    return (
+      <div className="noticed">
+        <div className="noticed-eyebrow"><Sparkles size={14} />Ferno noticed</div>
+        <h3 className="noticed-title">Nothing to flag yet.</h3>
+        <p className="noticed-body" style={{ margin: 0 }}>Ferno watches your events and surfaces changes worth a look here.</p>
+        <PixelCorner cols={16} rows={7} size={14} color="#feceab" opacity={0.35} />
+      </div>
+    )
+  }
+
   const it = INSIGHTS[i]
   return (
-    <div className="noticed" onPointerEnter={() => setPaused(true)} onPointerLeave={() => setPaused(false)}>
+    <div className="noticed" onPointerEnter={() => setPaused(true)} onPointerLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setPaused(false) }}>
       <div className="noticed-bars">
         {INSIGHTS.map((_, k) => (
-          <button key={k} aria-label={`Insight ${k + 1}`} onClick={() => { setI(k); setP(0) }}>
-            <span><i style={{ transform: `scaleX(${k < i ? 1 : k === i ? p : 0})` }} /></span>
+          <button key={k} aria-label={`Insight ${k + 1} of ${INSIGHTS.length}`} aria-current={k === i} onClick={() => setI(k)}>
+            <span>
+              {/* CSS drives the fill; the bar finishing advances the carousel */}
+              <i key={k === i ? `run-${i}` : k}
+                className={k < i ? 'full' : k === i && !reduce ? 'run' : k === i ? 'full' : ''}
+                style={{ animationPlayState: paused ? 'paused' : 'running' }}
+                onAnimationEnd={k === i && !reduce ? next : undefined} />
+            </span>
           </button>
         ))}
       </div>
-      <div>
-        <div className="noticed-eyebrow"><Sparkles size={14} />Ferno noticed</div>
-        {/* torph: the headline morphs into the next insight instead of swapping */}
-        <TextMorph as="h3" className="noticed-title">{it.title}</TextMorph>
-        <p key={i} className="noticed-body noticed-slide" style={{ margin: 0 }}>{it.body}</p>
+      <div className="noticed-eyebrow"><Sparkles size={14} />Ferno noticed</div>
+      {/* headline and body change together as one quick fade */}
+      <div key={i} className="noticed-slide">
+        <h3 className="noticed-title">{it.title}</h3>
+        <p className="noticed-body" style={{ margin: 0 }}>{it.body}</p>
       </div>
       <div className="noticed-actions">
         <button className="btn" style={{ color: 'var(--fg)' }} onClick={() => onOpen(it.q)}>Open report<ArrowRight size={14} /></button>

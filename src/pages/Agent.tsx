@@ -57,7 +57,7 @@ export function Composer({ onSend, autoFocus }: { onSend: (q: string) => void; a
 
 /* ───────── Agent home ───────── */
 export function AgentHome({ onAsk }: { onAsk: (q: string) => void }) {
-  const { go } = useApp()
+  const { go, mode } = useApp()
   const [set, setSet] = useState(0)
   return (
     <div className="fade-page" style={{ minHeight: '100%', display: 'grid', alignContent: 'center', padding: '64px 0' }}>
@@ -82,18 +82,20 @@ export function AgentHome({ onAsk }: { onAsk: (q: string) => void }) {
           <span style={{ display: 'flex', gap: 8, alignItems: 'center', color: 'var(--muted)' }}><History size={14} />Recent</span>
           <button className="btn btn-ghost" style={{ color: 'var(--accent-600)', height: 24, padding: '0 4px' }} onClick={() => go('reports')}>View all</button>
         </div>
-        <div className="recent-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 12 }}>
+        {mode === 'empty' ? (
+          <p className="card-sub" style={{ fontSize: 14 }}>No investigations yet. Ask a question above to start one.</p>
+        ) : <div className="recent-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 12 }}>
           {RECENT.map((r, i) => (
-            <button key={r.title} className="recent-card" onClick={() => onAsk(r.q)}>
+            <a key={r.title} className="recent-card" href="#/chat" onClick={(e) => { e.preventDefault(); onAsk(r.q) }}>
               <RecentThumb kind={r.thumb} seed={i} />
-              <div style={{ padding: '12px 14px', minWidth: 0 }}>
-                <div style={{ fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title}</div>
-                <div className="card-sub" style={{ marginTop: 4 }}>{r.sub}</div>
-                <div className="card-sub" style={{ marginTop: 6, color: 'var(--subtle)' }}>{r.time}</div>
-              </div>
-            </button>
+              <span style={{ display: 'block', padding: '12px 14px', minWidth: 0 }}>
+                <span style={{ display: 'block', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title}</span>
+                <span className="card-sub" style={{ display: 'block', marginTop: 4 }}>{r.sub}</span>
+                <span className="card-sub" style={{ display: 'block', marginTop: 6 }}>{r.time}</span>
+              </span>
+            </a>
           ))}
-        </div>
+        </div>}
       </div>
     </div>
   )
@@ -130,17 +132,24 @@ export function Chat({ msgs, onAsk }: { msgs: Msg[]; onAsk: (q: string) => void 
   )
 }
 
+/** Answers already streamed once; revisiting the chat shows them settled instead of replaying. */
+const played = new Set<number>()
+
 function Turn({ m }: { m: Msg }) {
-  const a = answerFor(m.q)
+  const { mode } = useApp()
+  const a = answerFor(m.q, mode === 'empty')
   const words = a.paras.map((p) => p.split(' '))
   const totalWords = words.reduce((s, w) => s + w.length, 0)
-  const [phase, setPhase] = useState<'thinking' | 'writing' | 'done'>('thinking')
-  const [shown, setShown] = useState(0)
+  const seen = played.has(m.id)
+  const [phase, setPhase] = useState<'thinking' | 'writing' | 'done'>(seen ? 'done' : 'thinking')
+  const [shown, setShown] = useState(seen ? Number.MAX_SAFE_INTEGER : 0)
   const [open, setOpen] = useState(false)
   useEffect(() => {
+    if (seen) return
     const t = setTimeout(() => setPhase('writing'), 1400)
     return () => clearTimeout(t)
-  }, [])
+  }, [seen])
+  useEffect(() => { if (phase === 'done') played.add(m.id) }, [phase, m.id])
   useEffect(() => {
     if (phase !== 'writing') return
     // time-based so it keeps pace even if timers are throttled
@@ -170,7 +179,7 @@ function Turn({ m }: { m: Msg }) {
         </div>
         {phase !== 'thinking' && (
           <button className="steps-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-            Tested the product {a.steps.length - 1} times, ran {a.steps.length} commands <ChevronRight size={14} />
+            Ran {a.steps.length} {a.steps.length === 1 ? 'query' : 'queries'} <ChevronRight size={14} />
           </button>
         )}
         {open && <div className="steps-list">{a.steps.map((s) => <div key={s}>{s}</div>)}</div>}
@@ -196,7 +205,7 @@ function ChartCard({ spec }: { spec: ChartSpec }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, margin: '4px 0 16px', flexWrap: 'wrap' }}>
         <div style={{ fontWeight: 500 }}>{spec.title}</div>
         {series.length > 1 && spec.type !== 'area' && (
-          <div className="legend">{series.map((s) => <span key={s.key}><i className="swatch" style={{ background: s.color }} />{s.label}</span>)}</div>
+          <div className="legend chips">{series.map((s) => <span key={s.key}><i className="swatch" style={{ background: s.color }} />{s.label}</span>)}</div>
         )}
       </div>
       {spec.type === 'bars' && <StackedBars height={260} labels={spec.labels} series={spec.series} />}

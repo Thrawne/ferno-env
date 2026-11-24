@@ -92,11 +92,23 @@ export const EVENT_SERIES = [
 
 export const FUNNEL_EVENTS = ['/ (Landing)', '/pricing', 'signup_started', 'Signed up with Google', '/checkout', 'export_clicked', 'invite_sent']
 export const DEFAULT_FUNNEL = ['/ (Landing)', '/pricing', 'signup_started', '/checkout']
+/** Landing → Checkout conversion per range; the Overview KPI and the default funnel agree on it. */
+export const CONVERSION: Record<Range, number> = { '24h': 16.4, '7d': 18.2, '30d': 17.6, '90d': 19.1 }
+
 export function funnelCounts(steps: string[], range: Range) {
   const top = Math.round(12847 * ({ '24h': 0.06, '7d': 1, '30d': 3.9, '90d': 11.2 }[range]))
-  const drops = [1, 0.641, 0.381, 0.182, 0.12]
+  const k = CONVERSION[range] / 18.2
+  const drops = [1, 0.641 * Math.sqrt(k), 0.381 * k, 0.182 * k, 0.12 * k]
   return steps.map((s, i) => ({ step: s, value: Math.round(top * drops[i]) }))
 }
+
+/** Heatmap totals per captured page (7-day figures; other ranges scale). */
+export const HEAT_TOTALS: Record<string, { total: number; sessions: number; clicks: number; rage: number; dead: number; move: number }> = {
+  'tokencrafter.vercel.app': { total: 18420, sessions: 2941, clicks: 14210, rage: 312, dead: 1148, move: 4210 },
+  'tokencrafter.vercel.app/pricing': { total: 6930, sessions: 1210, clicks: 5120, rage: 188, dead: 402, move: 1590 },
+  'tokencrafter.vercel.app/app': { total: 11480, sessions: 964, clicks: 8960, rage: 241, dead: 315, move: 2480 },
+}
+export const RANGE_SCALE: Record<Range, number> = { '24h': 0.15, '7d': 1, '30d': 4.1, '90d': 11.8 }
 
 export const PAGES = {
   Top: [

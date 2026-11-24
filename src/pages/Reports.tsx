@@ -6,6 +6,12 @@ import { LiveChart } from '../charts/LiveChart'
 import { MIN_USERS, pct, retry, useReports, type Report } from '../reports'
 
 /* ───────── shared bits ───────── */
+/** Big changes don't need a decimal: ↑1,033% reads faster than ↑1033.3%. */
+const fmtPct = (p: number) => {
+  const a = Math.abs(p)
+  return (a >= 100 ? Math.round(a).toLocaleString('en-US') : a.toFixed(1)) + '%'
+}
+const num = (n: number) => n.toLocaleString('en-US')
 const VERDICT: Record<Report['verdict'], { label: string; tone: string }> = {
   findings: { label: 'Findings ready', tone: 'good' },
   insufficient: { label: 'Not enough data', tone: 'warn' },
@@ -21,7 +27,7 @@ function PixelMeter({ impact }: { impact: NonNullable<Report['impact']> }) {
     <span className="rp-pxm" title={IMPACT[impact].label}>
       <span className="rp-pxm-bar" aria-hidden>
         {Array.from({ length: 5 }, (_, i) => (
-          <i key={i} style={i < n ? { background: PX_RAMP[PX_RAMP.length - n + i], animationDelay: `${i * 60}ms` } : { animationDelay: `${i * 60}ms` }} />
+          <i key={i} style={i < n ? { background: PX_RAMP[PX_RAMP.length - n + i], boxShadow: 'none', animationDelay: `${i * 60}ms` } : { animationDelay: `${i * 60}ms` }} />
         ))}
       </span>
       {IMPACT[impact].label}
@@ -49,7 +55,7 @@ function Change({ r, big }: { r: Report; big?: boolean }) {
   const good = up === higherIsBetter
   return (
     <span className={'rp-change ' + (good ? 'good' : 'bad') + (big ? ' big' : '')}>
-      {up ? '↑' : '↓'} <TextMorph numbers>{`${Math.abs(p).toFixed(1)}%`}</TextMorph>
+      {up ? '↑' : '↓'} <TextMorph numbers>{fmtPct(p)}</TextMorph>
     </span>
   )
 }
@@ -135,7 +141,7 @@ export function Reports() {
             <PixelCorner cols={22} rows={8} size={14} opacity={0.35} />
           </div>
         ) : list.map((r, i) => (
-          <button key={r.id} className="rp-row" onClick={() => go(`report/${r.id}`)} style={{ animationDelay: `${i * 40}ms` }}>
+          <a key={r.id} className="rp-row" href={`#/report/${r.id}`} onClick={(e) => { e.preventDefault(); go(`report/${r.id}`) }} style={{ animationDelay: `${i * 40}ms` }}>
             <div className="rp-main">
               <div className="rp-top">
                 <SourceChip r={r} />
@@ -146,11 +152,9 @@ export function Reports() {
               <div className="rp-foot">
                 <span className="rp-perf">
                   <span className="rp-perf-cell"><span className="rp-perf-label">Change</span><Change r={r} /></span>
-                  <span className="rp-perf-cell mono rp-from">{r.from} → {r.to} {r.unit}</span>
+                  <span className="rp-perf-cell mono rp-from">{num(r.from)} → {num(r.to)} {r.unit}</span>
                 </span>
-                <span className={'rp-verdict ' + (r.status === 'completed' ? VERDICT[r.verdict].tone : 'muted')}>
-                  {r.status === 'completed' ? VERDICT[r.verdict].label : r.status === 'running' ? 'In progress' : 'No result'}
-                </span>
+                {r.status === 'completed' && <span className={'rp-verdict ' + VERDICT[r.verdict].tone}>{VERDICT[r.verdict].label}</span>}
                 <StatusChip r={r} />
               </div>
             </div>
@@ -161,7 +165,7 @@ export function Reports() {
                 {r.impact && <PixelMeter impact={r.impact} />}
               </div>
             </div>
-          </button>
+          </a>
         ))}
       </div>
     </div>
@@ -170,19 +174,21 @@ export function Reports() {
 
 /* ───────── detail ───────── */
 export function ReportDetail({ id }: { id: string }) {
-  const { go } = useApp()
-  const r = useReports().find((x) => x.id === id)
+  const { go, mode } = useApp()
+  const found = useReports().find((x) => x.id === id)
+  const r = mode === 'empty' ? undefined : found
   const [open, setOpen] = useState<Set<number>>(new Set())
   const [copied, setCopied] = useState(false)
   if (!r) {
     return (
       <div className="page fade-page">
         <button className="btn btn-ghost rp-back" onClick={() => go('reports')}><ArrowLeft size={14} />Reports</button>
-        <EmptyState title="Report not found" sub="It may have been removed." />
+        {mode === 'empty'
+          ? <EmptyState title="No reports yet" sub="Investigations appear here once Ferno has activity to look into." />
+          : <EmptyState title="Report not found" sub="It may have been removed." />}
       </div>
     )
   }
-  const usersOk = r.users.current >= MIN_USERS && r.users.base >= MIN_USERS
   const share = () => {
     try { navigator.clipboard?.writeText(location.href) } catch { /* clipboard blocked */ }
     setCopied(true); setTimeout(() => setCopied(false), 1600)
@@ -242,7 +248,9 @@ export function ReportDetail({ id }: { id: string }) {
             <section className="card rp-sec">
               <div className="rp-h2">{r.event} · {r.page}</div>
               <div style={{ marginTop: 12 }}>
-                <LiveChart height={240} labels={r.chart.labels} series={[
+                <LiveChart height={240} labels={r.chart.labels} step={r.chart.step}
+                  referenceLine={{ value: Math.round((r.chart.base.reduce((a, b) => a + b, 0) / r.chart.base.length) * 10) / 10, label: 'Baseline avg' }}
+                  series={[
                   { key: 'cur', label: 'Current window', color: '#d97706', values: r.chart.current },
                   { key: 'base', label: 'Baseline', color: '#a4a4a4', values: r.chart.base },
                 ]} />
@@ -300,7 +308,7 @@ export function ReportDetail({ id }: { id: string }) {
               <span className="mono" style={{ fontSize: 13 }}>{r.event}</span>
               <Change r={r} big />
             </div>
-            <div className="rp-kv"><span>Rate</span><span className="mono">{r.from} → {r.to} {r.unit}</span></div>
+            <div className="rp-kv"><span>Rate</span><span className="mono">{num(r.from)} → {num(r.to)} {r.unit}</span></div>
             <div className="rp-kv"><span>z-score</span><span className="mono">{r.z.toFixed(2)}</span></div>
             <div className="rp-kv"><span>Page</span><span className="mono">{r.page}</span></div>
             <div className="rp-kv"><span>Source</span><span>{r.source === 'chat' ? 'Asked in chat' : 'Automatic'}</span></div>
@@ -309,7 +317,7 @@ export function ReportDetail({ id }: { id: string }) {
           </section>
           <section className="card rp-sec">
             <div className="eyebrow">Sample size</div>
-            <p className="rp-p" style={{ marginTop: 6 }}>Unique users in each window. Findings need at least {MIN_USERS}.</p>
+            <p className="rp-p" style={{ marginTop: 6 }}>Unique users per window. Findings need {MIN_USERS}.</p>
             {(['base', 'current'] as const).map((k) => {
               const n = r.users[k]
               const ok = n >= MIN_USERS
@@ -321,7 +329,6 @@ export function ReportDetail({ id }: { id: string }) {
                 </div>
               )
             })}
-            <p className="card-sub" style={{ marginTop: 10 }}>{usersOk ? 'Both windows clear the minimum.' : 'At least one window is under the minimum.'}</p>
           </section>
         </aside>
       </div>

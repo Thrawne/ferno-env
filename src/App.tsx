@@ -97,7 +97,7 @@ export default function App() {
       <div className="page fade-page" key={route}>
         <PageHeader title={t} sub={s} />
         <div className="group"><div className="card" style={{ minHeight: 420 }}>
-          <EmptyState title="Not part of this prototype yet" sub="This screen will follow once the core screens are signed off." />
+          <EmptyState title="Coming soon" sub="This page is on its way." />
           <PixelCorner cols={22} rows={8} size={14} opacity={0.4} />
         </div></div>
       </div>

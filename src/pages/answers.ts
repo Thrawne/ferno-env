@@ -91,14 +91,20 @@ const ANSWERS: { match: RegExp; a: Answer }[] = [
   },
 ]
 
-export function answerFor(q: string): Answer {
+export function answerFor(q: string, empty = false): Answer {
+  if (empty) {
+    return {
+      steps: ['query events --range 7d'],
+      paras: ['There’s no activity in this period yet, so there’s nothing to compare. Once events start arriving I can answer this; try a longer range in the meantime.'],
+    }
+  }
   const hit = ANSWERS.find((a) => a.match.test(q))
   if (hit) return hit.a
   return {
-    steps: ['parse question', 'query events --range 7d', 'summarise'],
+    steps: ['query events --range 7d', 'compare periods --by day', 'break down by source'],
     paras: [
-      'This is a prototype, so I’m answering with sample data. In the last 7 days visitors rose 14% and sessions 11%, with the biggest jump on Nov 21.',
-      'In the real product I’d run the investigation against your events, link the evidence, and offer to save it as a report.',
+      'Over the last 7 days visitors rose 14% and sessions 11%. The biggest single day was Nov 21, when Direct traffic doubled.',
+      'Nothing else moved outside its normal range. If you want, I can dig into what drove the Nov 21 spike.',
     ],
     chart: {
       type: 'area', title: 'Visitors · last 7 days', labels: ['Nov 18', 'Nov 19', 'Nov 20', 'Nov 21', 'Nov 22', 'Nov 23', 'Nov 24'],

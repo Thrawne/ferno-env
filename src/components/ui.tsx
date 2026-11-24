@@ -251,8 +251,10 @@ export function Body({ height, empty, children }: { height: number; empty: { tit
 }
 
 /* ───────── KPI tile ───────── */
-export function Kpi({ icon, label, value, format, delta, foot, spark, sparkColor }: {
+export function Kpi({ icon, label, value, format, delta, foot, spark, sparkColor, lowerIsBetter }: {
   icon: ReactNode; label: string; value: number; format: (n: number) => string; delta?: number; foot: string; spark?: number[]; sparkColor?: string
+  /** e.g. bounce rate: a fall is good news, so it's colored green */
+  lowerIsBetter?: boolean
 }) {
   const { mode, loading } = useApp()
   const empty = mode === 'empty'
@@ -276,7 +278,7 @@ export function Kpi({ icon, label, value, format, delta, foot, spark, sparkColor
             {/* torph: digits roll by place value when the date range changes */}
             <TextMorph numbers className="kpi-num">{format(value)}</TextMorph>
             {delta !== undefined && (
-              <span className={'pill ' + (delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat')}>
+              <span className={'pill ' + (delta === 0 ? 'flat' : (delta > 0) !== !!lowerIsBetter ? 'up' : 'down')}>
                 {delta > 0 ? '↑' : delta < 0 ? '↓' : ''}<TextMorph numbers>{`${Math.abs(delta).toFixed(1)}%`}</TextMorph>
               </span>
             )}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { TextMorph } from 'torph/react'
 import { CircleDashed, MousePointerClick, Move, Smartphone, Zap } from 'lucide-react'
-import { HEAT_PAGES, RANGES, RANGE_LABEL } from '../data'
+import { HEAT_PAGES, HEAT_TOTALS, RANGES, RANGE_LABEL, RANGE_SCALE } from '../data'
 import { EmptyState, PageHeader, PixelCorner, PixelLoader, Select, Seg, useApp } from '../components/ui'
 import { Tooltip, fmtFull } from '../charts/common'
 
@@ -168,8 +169,10 @@ export function Heatmaps() {
   const empty = mode === 'empty'
   const activePage = empty ? null : page
   const spots = activePage ? SPOTS[activePage] : []
-  const total = 18420
-  const counts = { clicks: 14210, rage: 312, dead: 1148, move: 4210 }
+  const base = HEAT_TOTALS[activePage ?? HEAT_PAGES[0]]
+  const sc = (n: number) => Math.round(n * RANGE_SCALE[range])
+  const total = sc(base.total)
+  const counts = { clicks: sc(base.clicks), rage: sc(base.rage), dead: sc(base.dead), move: sc(base.move) }
   const shown = useMemo(() => {
     if (hmMode === 'rage') return spots.filter((s) => s.kind === 'rage')
     if (hmMode === 'dead') return spots.filter((s) => s.kind === 'dead')
@@ -205,7 +208,7 @@ export function Heatmaps() {
         <div className="card" style={{ padding: 20 }}>
           {activePage && !loading && (
             <div className="card-head" style={{ marginBottom: 12 }}>
-              <span className="num" style={{ fontWeight: 500 }}>{fmtFull(total)} <span className="card-sub" style={{ fontSize: 14 }}>interactions from 2,941 sessions</span></span>
+              <span className="num" style={{ fontWeight: 500 }}><TextMorph numbers>{fmtFull(total)}</TextMorph> <span className="card-sub" style={{ fontSize: 14 }}>interactions from <TextMorph numbers>{fmtFull(sc(base.sessions))}</TextMorph> sessions</span></span>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div className="hm-legend">Fewer<span className="ramp" />More</div>
                 <Seg value={device} options={['Desktop', 'Mobile']} onChange={setDevice} />
@@ -269,7 +272,7 @@ export function Heatmaps() {
         <div style={{ padding: '12px 14px 10px' }}>
           <div style={{ fontWeight: 500 }}>See what aggregate metrics cannot explain</div>
           <div className="card-sub" style={{ fontSize: 14, marginTop: 2 }}>
-            {activePage ? 'Pick a layer to place captured behaviour over the interface your users actually saw.' : 'Select an instrumented page to place captured behaviour over the interface your users actually saw.'}
+            {activePage ? 'Pick a layer to place captured behavior over the interface your users actually saw.' : 'Select an instrumented page to place captured behavior over the interface your users actually saw.'}
           </div>
         </div>
         <div className="grid g-4">
@@ -280,7 +283,7 @@ export function Heatmaps() {
               <div style={{ fontWeight: 500, marginTop: 8 }}>{m.title}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 2 }}>
                 <span className="card-sub">{m.sub}</span>
-                {activePage && !loading && <span className="num" style={{ fontWeight: 500 }}>{fmtFull(m.n!)}</span>}
+                {activePage && !loading && <TextMorph numbers className="num" style={{ fontWeight: 500 }}>{fmtFull(m.n!)}</TextMorph>}
               </div>
               <PixelCorner cols={12} rows={4} size={9} color="#bbf7d0" opacity={0.45} />
             </button>

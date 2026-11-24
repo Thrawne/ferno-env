@@ -16,7 +16,7 @@ export function StackedBars({ series, labels, height = 280, hidden }: Props) {
   const [ref, width] = useWidth<HTMLDivElement>()
   const [hover, setHover] = useState<number | null>(null)
   const vis = series.filter((s) => !hidden?.has(s.key))
-  const pad = { t: 12, r: 52, b: 28, l: 0 }
+  const pad = { t: 12, r: 96, b: 28, l: 0 } // right room for the axis and the labelled latest-total tag
   const iw = Math.max(0, width - pad.r)
   const ih = height - pad.t - pad.b
   const totals = labels.map((_, i) => vis.reduce((a, s) => a + s.values[i], 0))
@@ -76,7 +76,7 @@ export function StackedBars({ series, labels, height = 280, hidden }: Props) {
         </svg>
       )}
       {width > 0 && totals.length > 0 && (
-        <span className="lv-badge" style={{ top: pad.t + y(totals[totals.length - 1]), right: 2 }}>{fmt(totals[totals.length - 1])}</span>
+        <span className="lv-badge" style={{ top: pad.t + y(totals[totals.length - 1]), right: 2 }} title="Latest total">{labels[labels.length - 1]} · {fmt(totals[totals.length - 1])}</span>
       )}
       {hover !== null && (
         <Tooltip x={(x(hover) ?? 0) + bw} y={Math.max(0, y(totals[hover]) - 10)} w={width} visible>

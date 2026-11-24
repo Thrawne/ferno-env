@@ -55,21 +55,25 @@ function useMorph(series: LiveSeries[]) {
   return shown
 }
 
-export function LiveChart({ series, labels, height = 280, loading, format = fmtFull, badge = true }: {
+export function LiveChart({ series, labels, height = 280, loading, format = fmtFull, badge = true, step = STEP, referenceLine }: {
   series: LiveSeries[]; labels: string[]; height?: number; loading?: boolean; format?: (n: number) => string; badge?: boolean
+  /** seconds between points; match the data's real interval so Liveline's own ticks land on points (2h data → 7200) */
+  step?: number
+  /** a fixed horizontal line, e.g. the baseline average, so a zoomed axis can't exaggerate a change */
+  referenceLine?: { value: number; label?: string }
 }) {
   const anchor = useRef(Math.floor(Date.now() / 1000)).current
   const shown = useMorph(series)
   const n = labels.length
-  const start = anchor - (n - 1) * STEP
-  const formatTime = (t: number) => labels[Math.max(0, Math.min(n - 1, Math.round((t - start) / STEP)))] ?? ''
+  const start = anchor - (n - 1) * step
+  const formatTime = (t: number) => labels[Math.max(0, Math.min(n - 1, Math.round((t - start) / step)))] ?? ''
   const multi = useMemo(
     () => shown.map((s) => ({
       id: s.key, label: s.label, color: s.color,
-      data: s.values.map((v, i): LivelinePoint => ({ time: start + i * STEP, value: v })),
+      data: s.values.map((v, i): LivelinePoint => ({ time: start + i * step, value: v })),
       value: s.values[s.values.length - 1],
     })),
-    [shown, start],
+    [shown, start, step],
   )
   const first = multi[0]
   return (
@@ -81,7 +85,8 @@ export function LiveChart({ series, labels, height = 280, loading, format = fmtF
         value={first.value}
         series={multi.length > 1 ? multi : undefined}
         color={series[0].color}
-        window={(n - 1) * STEP + STEP * 0.6}
+        window={(n - 1) * step + step * 0.6}
+        referenceLine={referenceLine}
         loading={loading}
         momentum={false}
         badge={badge}
