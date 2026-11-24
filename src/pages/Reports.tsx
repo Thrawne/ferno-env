@@ -11,7 +11,22 @@ const VERDICT: Record<Report['verdict'], { label: string; tone: string }> = {
   insufficient: { label: 'Not enough data', tone: 'warn' },
   'no-change': { label: 'No real change', tone: 'flat' },
 }
-const IMPACT = { high: { label: 'High impact', w: 0.9 }, medium: { label: 'Medium impact', w: 0.55 }, low: { label: 'Low impact', w: 0.25 } }
+const IMPACT = { high: { label: 'High impact', n: 4 }, medium: { label: 'Medium impact', n: 3 }, low: { label: 'Low impact', n: 2 } }
+
+/** Pixel meter (Figma 227:35130): 5 squares, filled ones amber getting more solid toward the last. */
+function PixelMeter({ impact }: { impact: NonNullable<Report['impact']> }) {
+  const n = IMPACT[impact].n
+  return (
+    <span className="rp-pxm" title={IMPACT[impact].label}>
+      <span className="rp-pxm-bar" aria-hidden>
+        {Array.from({ length: 5 }, (_, i) => (
+          <i key={i} style={i < n ? { background: 'var(--accent-500)', opacity: 1 - (n - 1 - i) * 0.1125, animationDelay: `${i * 60}ms` } : undefined} />
+        ))}
+      </span>
+      {IMPACT[impact].label}
+    </span>
+  )
+}
 
 function StatusChip({ r }: { r: Report }) {
   if (r.status === 'running') return <span className="rp-status running"><Loader2 size={12} className="spin" />Investigating</span>
@@ -21,8 +36,8 @@ function StatusChip({ r }: { r: Report }) {
 
 function SourceChip({ r }: { r: Report }) {
   return r.source === 'chat'
-    ? <span className="rp-chip"><FernoMark size={13} />Asked in chat</span>
-    : <span className="rp-chip"><Radar size={13} color="var(--s2)" />Automatic</span>
+    ? <span className="rp-src"><FernoMark size={13} />Asked in chat</span>
+    : <span className="rp-src"><Radar size={13} color="var(--s2)" />Automatic</span>
 }
 
 function Change({ r, big }: { r: Report; big?: boolean }) {
@@ -130,23 +145,19 @@ export function Reports() {
               <p className="rp-summary">{r.summary}</p>
               <div className="rp-foot">
                 <span className="rp-perf">
-                  <span className="rp-perf-label">Change</span>
-                  <Change r={r} />
-                  <span className="rp-perf-sep" />
-                  <span className="mono rp-from">{r.from} → {r.to} {r.unit}</span>
+                  <span className="rp-perf-cell"><span className="rp-perf-label">Change</span><Change r={r} /></span>
+                  <span className="rp-perf-cell mono rp-from">{r.from} → {r.to} {r.unit}</span>
                 </span>
                 <span className={'rp-verdict ' + (r.status === 'completed' ? VERDICT[r.verdict].tone : 'muted')}>
                   {r.status === 'completed' ? VERDICT[r.verdict].label : r.status === 'running' ? 'In progress' : 'No result'}
                 </span>
-                {r.impact && (
-                  <span className="rp-impact" title={IMPACT[r.impact].label}>
-                    <span className="rp-meter"><i style={{ width: `${IMPACT[r.impact].w * 100}%` }} /></span>{IMPACT[r.impact].label}
-                  </span>
-                )}
                 <StatusChip r={r} />
               </div>
             </div>
-            <ChevronRight size={18} className="rp-chev" />
+            <div className="rp-aside">
+              <ChevronRight size={18} className="rp-chev" />
+              {r.impact && <PixelMeter impact={r.impact} />}
+            </div>
           </button>
         ))}
       </div>

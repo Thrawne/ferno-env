@@ -21,7 +21,11 @@ Entry types: **New** (screen or feature), **Changed** (redesign or behaviour cha
 - **Reports layout now matches Overview:**
   - Report rows are separate rounded cards on the grey fill, spanning the full width of the page header.
   - The detail page is one grouped block: the main column and the side panel share the same grey fill. The side panel stretches so both columns end on the same line. The evidence-trail steps are grouped on the grey fill too, instead of separate outlined boxes.
-  - The report count sits beside the "Reports" title, morphing with torph, instead of in a separate "REPORTS · 6" row. `PageHeader` takes an optional `count` for this.
+  - The report count sits beside the "Reports" title, morphing with torph, instead of in a separate "REPORTS · 6" row. `PageHeader` takes an optional `count` for this. It uses the same font and size as the title, in grey 600.
+  - **Report rows follow Figma 227:34690:**
+    - The source is a plain icon and label, not a pill.
+    - Change is a two-cell box (change | rate) with a full-height divider.
+    - Impact is a 5-square pixel meter (filled squares amber, getting more solid toward the last one; high fills 4, medium 3, low 2). It sits on the right under the chevron, and drops below the footer on phones.
 
 ## 2026-11-24
 
