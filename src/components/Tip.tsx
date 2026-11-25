@@ -6,46 +6,46 @@ import { useApp } from './ui'
 import './tips.css'
 
 /* ───────── Content ───────── */
-export type TipDef = { title: string; sub: string; art: ArtKind; eyebrow: string; label: string; set?: ListSet }
+/** `label` is the card title drawn inside the close-up. */
+export type TipDef = { title: string; sub: string; art: ArtKind; label: string; set?: ListSet }
 
 /** Info tips beside card titles. Short: what the card measures, nothing more. */
 export const TIPS = {
-  activeUsers: { title: 'Active users', sub: 'People who did anything in the period. Returning is the share who had visited before.', art: 'line', eyebrow: 'Chart', label: 'Active users' },
-  eventActivity: { title: 'Event activity', sub: 'Every tracked event per day, stacked by type. Tap a legend chip to hide a type.', art: 'bars', eyebrow: 'Chart', label: 'Events per day' },
-  funnel: { title: 'Conversion funnel', sub: 'How many people reach each step, in order. Edit it to track your own steps.', art: 'funnel', eyebrow: 'Funnel', label: 'Landing → Checkout' },
-  traffic: { title: 'Traffic', sub: 'Visitors, views or sessions, against the previous period.', art: 'line', eyebrow: 'Chart', label: 'Visitors' },
-  pages: { title: 'Pages', sub: 'The most visited pages, and where visits start and end.', art: 'list', set: 'pages', eyebrow: 'List', label: 'Top pages' },
-  sources: { title: 'Sources', sub: 'Where visits come from: referring sites, or your tagged campaigns.', art: 'list', set: 'sources', eyebrow: 'List', label: 'Top sources' },
-  newReturning: { title: 'New vs. returning', sub: 'First-time visitors against people who have been here before.', art: 'donut', eyebrow: 'Split', label: 'Visitors' },
-  technology: { title: 'Technology', sub: 'The devices, browsers and systems your visitors use.', art: 'list', set: 'tech', eyebrow: 'List', label: 'Devices' },
-  region: { title: 'Region', sub: 'Where your visitors are, by timezone and language.', art: 'list', set: 'region', eyebrow: 'List', label: 'Timezones' },
-  retention: { title: 'Weekly retention', sub: "Each row is one week's new users. Each cell is the share still active weeks later.", art: 'retention', eyebrow: 'Cohorts', label: 'Weekly retention' },
-  heatmap: { title: 'Heatmaps', sub: 'Clicks, rage clicks and pointer movement on one page.', art: 'heat', eyebrow: 'Heatmap', label: '/pricing' },
+  activeUsers: { title: 'Active users', sub: 'People who did anything in the period. Returning is the share who had visited before.', art: 'scrub', label: 'Active Users' },
+  eventActivity: { title: 'Event activity', sub: 'Every tracked event per day, stacked by type. Tap a legend chip to hide a type.', art: 'bars', label: 'Events per day' },
+  funnel: { title: 'Conversion funnel', sub: 'How many people reach each step, in order. Edit it to track your own steps.', art: 'funnel', label: 'Landing → Checkout' },
+  traffic: { title: 'Traffic', sub: 'Visitors, views or sessions, against the previous period.', art: 'scrub', label: 'Traffic' },
+  pages: { title: 'Pages', sub: 'The most visited pages, and where visits start and end.', art: 'list', set: 'pages', label: 'Pages' },
+  sources: { title: 'Sources', sub: 'Where visits come from: referring sites, or your tagged campaigns.', art: 'list', set: 'sources', label: 'Sources' },
+  newReturning: { title: 'New vs. returning', sub: 'First-time visitors against people who have been here before.', art: 'donut', label: 'Visitors' },
+  technology: { title: 'Technology', sub: 'The devices, browsers and systems your visitors use.', art: 'list', set: 'tech', label: 'Technology' },
+  region: { title: 'Region', sub: 'Where your visitors are, by timezone and language.', art: 'list', set: 'region', label: 'Region' },
+  retention: { title: 'Weekly retention', sub: "Each row is one week's new users. Each cell is the share still active weeks later.", art: 'retention', label: 'Weekly retention' },
+  heatmap: { title: 'Heatmaps', sub: 'Clicks, rage clicks and pointer movement on one page.', art: 'heat', label: '/pricing' },
 } satisfies Record<string, TipDef>
 export type TipId = keyof typeof TIPS
 
 type Step = TipDef & { route: string | null; target: string }
 /** The guided tour. `route: null` stays on whatever page is open. */
 const STEPS: Step[] = [
-  { route: 'overview', target: 'kpis', title: 'Your numbers at a glance', sub: 'Each tile compares this period with the one before it.', art: 'kpi', eyebrow: 'KPI', label: 'This period' },
-  { route: 'overview', target: 'range', title: 'Change the period', sub: 'Every chart and number follows this range, and morphs to the new data.', art: 'line', eyebrow: 'Chart', label: 'Active users' },
-  { route: 'overview', target: 'funnel', title: 'Find the drop-off', sub: 'See how many people make it from one step to the next.', art: 'funnel', eyebrow: 'Funnel', label: 'Landing → Checkout' },
-  { route: 'agent', target: 'composer', title: 'Ask Ferno', sub: 'Ask in plain words. The agent runs the queries and answers with a chart.', art: 'agent', eyebrow: 'Agent', label: 'New chat' },
-  { route: 'heatmaps', target: 'heat', title: 'See where people click', sub: 'Pick a page to see clicks, rage clicks and movement.', art: 'heat', eyebrow: 'Heatmap', label: '/pricing' },
-  { route: 'reports', target: 'reports', title: 'Read the reports', sub: 'Ferno looks into changes on its own. Each report shows what changed, why, and how sure it is.', art: 'report', eyebrow: 'Reports', label: 'Investigations' },
-  { route: null, target: 'dock', title: 'Try every state', sub: 'Switch the data between filled, loading and empty to see how each screen copes.', art: 'fill', eyebrow: 'Chart', label: 'Website traffic' },
+  { route: 'overview', target: 'kpis', title: 'Your numbers at a glance', sub: 'Each tile compares this period with the one before it.', art: 'kpi', label: 'This period' },
+  { route: 'overview', target: 'range', title: 'Change the period', sub: 'Every chart and number follows this range, and morphs to the new data.', art: 'range', label: 'Overview' },
+  { route: 'overview', target: 'funnel', title: 'Find the drop-off', sub: 'See how many people make it from one step to the next.', art: 'funnel', label: 'Landing → Checkout' },
+  { route: 'agent', target: 'composer', title: 'Ask Ferno', sub: 'Ask in plain words. The agent runs the queries and answers with a chart.', art: 'agent', label: 'New chat' },
+  { route: 'heatmaps', target: 'heat', title: 'See where people click', sub: 'Pick a page to see clicks, rage clicks and movement.', art: 'heat', label: '/pricing' },
+  { route: 'reports', target: 'reports', title: 'Read the reports', sub: 'Ferno looks into changes on its own. Each report shows what changed, why, and how sure it is.', art: 'report', label: 'Investigations' },
+  { route: null, target: 'dock', title: 'Try every state', sub: 'Switch the data between filled, loading and empty to see how each screen copes.', art: 'fill', label: 'Website traffic' },
 ]
 
 /* ───────── The card (Figma 230:35347) ───────── */
 export function TipCard({ tip, size, footer, id }: { tip: TipDef; size: 'tour' | 'hover'; footer?: ReactNode; id?: string }) {
-  const w = size === 'tour' ? 224 : 196 // the front card's content width
   return (
     <div className={'tip-card tip-' + size} role={size === 'tour' ? 'dialog' : 'tooltip'} id={id} aria-label={size === 'tour' ? tip.title : undefined}>
       <div className="tip-head">
         <p className="tip-title">{tip.title}</p>
         <p className="tip-sub">{tip.sub}</p>
       </div>
-      <TipArt kind={tip.art} eyebrow={tip.eyebrow} label={tip.label} set={tip.set} w={w} />
+      <TipArt kind={tip.art} label={tip.label} set={tip.set} />
       {footer && <div className="tip-foot">{footer}</div>}
     </div>
   )
@@ -142,7 +142,8 @@ export function InfoTip({ id }: { id: TipId }) {
 
 /** A card title with its info tip. */
 export function CardTitle({ tip, children }: { tip: TipId; children: ReactNode }) {
-  return <h3 className="card-title has-tip">{children}<InfoTip id={tip} /></h3>
+  // the button sits beside the heading, not in it, so the heading's name stays just the title
+  return <span className="card-title-wrap"><h3 className="card-title">{children}</h3><InfoTip id={tip} /></span>
 }
 
 /* ───────── Guided tour ─────────
@@ -163,7 +164,7 @@ export function Tour({ onClose }: { onClose: () => void }) {
 
   // find, scroll to, and follow the target
   useEffect(() => {
-    let raf = 0, scrolled = false, prev = ''
+    let raf = 0, scrolledTo: HTMLElement | null = null, prev = ''
     const t0 = performance.now()
     setRect(null)
     const tick = () => {
@@ -171,7 +172,8 @@ export function Tour({ onClose }: { onClose: () => void }) {
       const el = document.querySelector<HTMLElement>(`[data-tour="${step.target}"]`)
         ?? (performance.now() - t0 > 1200 ? document.querySelector<HTMLElement>('.page-header .title-row, .agent-head') : null)
       if (el) {
-        if (!scrolled) { el.scrollIntoView({ block: el.offsetHeight > window.innerHeight * 0.6 ? 'start' : 'center', behavior: 'instant' as ScrollBehavior }); scrolled = true }
+        // scroll once per element: again if the real target turns up after the title fallback
+        if (el !== scrolledTo) { el.scrollIntoView({ block: el.offsetHeight > window.innerHeight * 0.6 ? 'start' : 'center', behavior: 'instant' as ScrollBehavior }); scrolledTo = el }
         const r = el.getBoundingClientRect()
         const k = [r.top, r.left, r.width, r.height].map(Math.round).join()
         if (k !== prev) { prev = k; setRect(r) }
@@ -206,7 +208,6 @@ export function Tour({ onClose }: { onClose: () => void }) {
   const pad = 6
   return createPortal(
     <div className="tour">
-      <div className="tour-block" />
       <div className={'tour-spot' + (rect ? ' on' : '')} style={rect ? { top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 } : undefined} />
       <div ref={card} className={'tour-card' + (pos ? ' in' : '')} style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999 }}>
         <TipCard key={i} size="tour" tip={step} footer={
@@ -219,5 +220,15 @@ export function Tour({ onClose }: { onClose: () => void }) {
       </div>
     </div>,
     document.body,
+  )
+}
+
+/** #/tips: every tip and tour step at once, for design review. */
+export function TipGallery() {
+  return (
+    <div className="tip-gallery">
+      {STEPS.map((t, i) => <TipCard key={'s' + i} tip={t} size="tour" />)}
+      {Object.entries(TIPS).map(([k, t]) => <TipCard key={k} tip={t} size="hover" />)}
+    </div>
   )
 }

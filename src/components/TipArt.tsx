@@ -1,316 +1,563 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Users } from 'lucide-react'
+import { useEffect, useRef, type ReactNode } from 'react'
+import { Check, ChevronsUpDown, Loader2, Send, Users } from 'lucide-react'
 import { TextMorph } from 'torph/react'
 import { GlimmScope, type GlimmScopeHandle } from 'glimm/react'
 import { accentPair } from 'glimm'
-import { Bar, Chart, Stage, type Act } from '../kit'
+import { Bar, Chart, Stage, chartPoints, type Act } from '../kit'
 import { LiveChart } from '../charts/LiveChart'
 
 /**
- * Faux-UI illustrations for the tip card (Figma: Ferno · Tooltip, 230:35347).
+ * Tip illustrations (Figma: Ferno · Tooltip, 230:35347): a close-up.
  *
- * The amber panel from the Figma frame: a 5 × 5 grid of white squares on the
- * right, a back card tilted −2.74°, and a front card that runs off the bottom
- * edge. The front card holds a tiny, living version of the thing the tip
- * points at. Each piece uses the package that fits it:
- *   - torph: numbers and labels that change (KPI, ranked lists, donut)
- *   - Liveline: line charts that morph between periods
- *   - stageshow: the scripted agent exchange and the kit bar chart
- *   - glimm: the one empty → filled transition, as an accent sweep
- * Everything holds still under reduced motion.
+ * Each one is a crop of the screen the tip points at, drawn about 1.2× true
+ * size on the page's own grey ground: one white card, its top-left corner in
+ * view so it reads as part of the app, running off the bottom (and right,
+ * where the right edge isn't the point). No stacked or tilted cards.
+ *
+ * The crop then does what the feature does, the cursor (stageshow's large
+ * style, to match the zoom) pressing the real control where there is one:
+ *   - torph: numbers, labels and statuses that change in place
+ *   - Liveline: the line that morphs when the period changes
+ *   - stageshow: the stage, cursor, script and kit chart
+ *   - glimm: the empty → filled sweep, on the Data switch only
+ * Designed at 360 × 200 and scaled to fit; under reduced motion each holds
+ * its poster frame (the payoff).
  */
-export type ArtKind = 'kpi' | 'line' | 'bars' | 'fill' | 'funnel' | 'agent' | 'heat' | 'report' | 'list' | 'retention' | 'donut'
+export type ArtKind = 'kpi' | 'range' | 'scrub' | 'bars' | 'fill' | 'funnel' | 'agent' | 'heat' | 'report' | 'list' | 'retention' | 'donut'
 export type ListSet = 'pages' | 'sources' | 'tech' | 'region'
 
-const reduced = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+const W = 360, H = 200
+type Pt = { x: number; y: number }
 
-/** Steps through `n` states every `ms` while mounted (stays on 0 under reduced motion). */
-function useCycle(n: number, ms: number) {
-  const [i, setI] = useState(0)
-  useEffect(() => {
-    if (reduced()) return
-    const t = setInterval(() => setI((x) => (x + 1) % n), ms)
-    return () => clearInterval(t)
-  }, [n, ms])
-  return i
-}
-
-// Figma 230:35352: white square alphas, row by row
-const GRID = [0, .2, .4, .2, .8, .2, .4, .7, .8, 0, .8, 0, 0, .8, .2, 0, .8, .4, 0, .7, .8, .7, .2, .4, .4]
-
-export function TipArt({ kind, eyebrow, label, set, w }: { kind: ArtKind; eyebrow: string; label: string; set?: ListSet; w: number }) {
+function Close<S extends object>({ initial, poster, script, cursor, children }: {
+  initial: S; poster: S; script: (a: Act<S>) => Promise<void>; cursor?: Pt; children: (s: S) => ReactNode
+}) {
   return (
-    <div className="tip-art" aria-hidden>
-      <div className="tip-grid">{GRID.map((a, i) => <i key={i} style={{ background: `rgba(255,255,255,${a})` }} />)}</div>
-      <div className="tip-back" />
-      <div className="tip-front">
-        <div className="tip-fhead">
-          <span className="tip-eyebrow">{eyebrow}</span>
-          <span className="tip-flabel">{label}</span>
-        </div>
-        <Faux kind={kind} set={set} w={w} />
-      </div>
-    </div>
-  )
-}
-
-function Faux({ kind, set, w }: { kind: ArtKind; set?: ListSet; w: number }) {
-  switch (kind) {
-    case 'kpi': return <FauxKpi />
-    case 'line': return <FauxLine w={w} />
-    case 'bars': return <FauxBars w={w} />
-    case 'fill': return <FauxFill w={w} />
-    case 'funnel': return <FauxFunnel />
-    case 'agent': return <FauxAgent w={w} />
-    case 'heat': return <FauxHeat />
-    case 'report': return <FauxReport />
-    case 'list': return <FauxList set={set ?? 'pages'} />
-    case 'retention': return <FauxRetention />
-    case 'donut': return <FauxDonut />
-  }
-}
-
-/* KPI: the number, delta and period morph together, the way they do on a range switch */
-const KPI = [
-  { v: '12,480', d: '8.1%', up: true, p: 'Last 7 days' },
-  { v: '48,906', d: '11.4%', up: true, p: 'Last 30 days' },
-  { v: '131,212', d: '2.3%', up: false, p: 'Last 90 days' },
-]
-function FauxKpi() {
-  const k = KPI[useCycle(KPI.length, 2200)]
-  return (
-    <div className="fx-kpi">
-      <div className="fx-kpi-l"><Users size={12} />Active users</div>
-      <div className="fx-kpi-v num">
-        <TextMorph numbers>{k.v}</TextMorph>
-        <span className={'pill ' + (k.up ? 'up' : 'down')}>{k.up ? '↑' : '↓'}<TextMorph numbers>{k.d}</TextMorph></span>
-      </div>
-      <div className="fx-kpi-f mono"><TextMorph>{k.p}</TextMorph></div>
-      <div className="fx-kpi-bars">{[30, 42, 38, 55, 48, 66, 72].map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}</div>
-    </div>
-  )
-}
-
-/* Line: a Liveline that morphs between two periods */
-const LINES = [
-  [22, 26, 24, 30, 34, 31, 38, 42, 40, 47, 52, 50, 58, 63],
-  [30, 28, 33, 31, 36, 44, 41, 39, 46, 44, 51, 57, 55, 60],
-]
-const LINE_LABELS = Array.from({ length: 14 }, (_, i) => `Day ${i + 1}`)
-function FauxLine({ w }: { w: number }) {
-  const v = LINES[useCycle(LINES.length, 2600)]
-  return (
-    <div style={{ width: w, marginLeft: -4 }}>
-      <LiveChart mini height={118} labels={LINE_LABELS} series={[{ key: 'a', label: 'Active', color: '#d97706', values: v }]} />
-    </div>
-  )
-}
-
-/* Bars: the stageshow kit chart easing between days */
-const BARS = [[14, 22, 19, 30, 26, 38, 44, 40], [18, 16, 26, 24, 34, 30, 41, 52]]
-function FauxBars({ w }: { w: number }) {
-  const d = BARS[useCycle(BARS.length, 2400)]
-  return <Chart kind="bars" data={d} width={w} height={118} max={56} show className="fx-chart" />
-}
-
-/* Fill: glimm sweeps an accent band across an empty card and the data lands behind it */
-const FILL = [8, 16, 16, 24, 27, 31, 44, 50, 62, 70, 84, 100]
-const SWEEP = accentPair('#d97706', '#feceab')
-function FauxFill({ w }: { w: number }) {
-  const scope = useRef<GlimmScopeHandle>(null)
-  const [filled, setFilled] = useState(false)
-  useEffect(() => {
-    if (reduced()) { setFilled(true); return }
-    const timers: number[] = []
-    const run = () => {
-      timers.push(window.setTimeout(() => scope.current?.play({ change: () => setFilled(true) }), 900))
-      // the card empties out again (a new, empty period) before the next sweep
-      timers.push(window.setTimeout(() => setFilled(false), 4600))
-    }
-    run()
-    const loop = window.setInterval(run, 5400)
-    return () => { clearInterval(loop); timers.forEach(clearTimeout) }
-  }, [])
-  return (
-    <div style={{ width: w, height: 124, position: 'relative' }}>
-      <GlimmScope ref={scope} palette={SWEEP} direction="ltr" sweepMs={1300} curve={0.06} bandTight={34} pageEffect={false}
-        style={{ position: 'absolute', inset: 0 }}>
-        <div className="fx-fill" data-filled={filled}>
-          <div className="fx-fill-grid">{[0, 1, 2, 3].map((i) => <i key={i} />)}</div>
-          <div className="fx-fill-bars">
-            {FILL.map((h, i) => (
-              <span key={i} style={{ height: `${Math.max(10, h)}%`, transitionDelay: filled ? `${i * 25}ms` : '0ms' }}>
-                <b style={{ height: `${Math.max(20, h - 8)}%` }} />
-              </span>
-            ))}
-          </div>
-          <div className="fx-fill-empty">
-            <b>No visits in this period</b>
-            <span>Try a longer period.</span>
-          </div>
-        </div>
-      </GlimmScope>
-    </div>
-  )
-}
-
-/* Funnel: four steps narrowing in order */
-const FUNNEL = [['Landing', 100], ['Pricing', 64], ['Sign up', 38], ['Checkout', 21]] as const
-function FauxFunnel() {
-  const [on, setOn] = useState(false)
-  useEffect(() => { const t = requestAnimationFrame(() => setOn(true)); return () => cancelAnimationFrame(t) }, [])
-  return (
-    <div className="fx-funnel">
-      {FUNNEL.map(([l, v], i) => (
-        <div key={l} className="fx-frow">
-          <span className="fx-fl">{l}</span>
-          <span className="fx-ftrack"><i style={{ width: on ? `${v}%` : '0%', transitionDelay: `${i * 90}ms`, opacity: 1 - i * 0.16 }} /></span>
-          <span className="fx-fv num">{v}%</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-/* Agent: question → queries → answer chart, scripted with stageshow */
-type AS = { step: 0 | 1 | 2 | 3 }
-async function agentScript(a: Act<AS>) {
-  await a.wait(500)
-  a.set({ step: 1 })
-  await a.wait(900)
-  a.set({ step: 2 })
-  await a.wait(1100)
-  a.set({ step: 3 })
-  await a.wait(2800)
-  a.set({ step: 0 })
-  await a.wait(400)
-}
-function FauxAgent({ w }: { w: number }) {
-  return (
-    <Stage width={w} height={128} initial={{ step: 0 } as AS} poster={{ step: 3 }} script={agentScript} play="loop" className="fx-stage" accent="#d97706" unframed>
-      {(s) => (
-        <div className="fx-agent" data-step={s.step} style={{ width: w }}>
-          <div className="fx-q">Why did sign-ups dip?</div>
-          <div className="fx-run"><img src="/brand/ferno-agent.svg" width={12} height={12} alt="" className={s.step === 2 ? 'mark-think' : undefined} />{s.step >= 3 ? 'Ran 3 queries' : 'Running queries…'}</div>
-          <div className="fx-ans">
-            <Bar w={Math.round(w * 0.78)} h={6} tone={2} />
-            <Bar w={Math.round(w * 0.56)} h={6} tone={1} />
-            <Chart kind="line" data={[30, 32, 31, 34, 33, 22, 24, 26]} width={w} height={44} show={s.step >= 3} area className="fx-chart" />
-          </div>
-        </div>
-      )}
+    <Stage width={W} height={H} initial={initial} poster={poster} script={script} play="loop" unframed className="cx" accent="#d97706"
+      cursor={cursor ? { at: cursor, style: 'large' } : undefined}>
+      {(s) => <div className="cx-ground">{children(s)}</div>}
     </Stage>
   )
 }
 
-/* Heatmap: a page wireframe with heat over the hot spots and one rage-click ring */
-function FauxHeat() {
-  return (
-    <div className="fx-heat">
-      <div className="fx-hnav"><Bar w={34} h={6} tone={3} /><Bar w={22} h={5} tone={1} /><Bar w={22} h={5} tone={1} /><span className="fx-hbtn" /></div>
-      <Bar w={130} h={9} tone={3} />
-      <Bar w={96} h={6} tone={1} />
-      <div className="fx-hcards"><i /><i /><i /></div>
-      <span className="fx-blob" style={{ left: '78%', top: '10%', ['--s' as string]: '46px' }} />
-      <span className="fx-blob" style={{ left: '30%', top: '72%', ['--s' as string]: '60px', animationDelay: '.6s' }} />
-      <span className="fx-blob" style={{ left: '62%', top: '70%', ['--s' as string]: '34px', animationDelay: '1.1s' }} />
-      <span className="fx-rage" style={{ left: '30%', top: '72%' }} />
-    </div>
-  )
+export function TipArt({ kind, label, set }: { kind: ArtKind; label: string; set?: ListSet }) {
+  return <div className="tip-art" aria-hidden><Scene kind={kind} label={label} set={set} /></div>
 }
 
-/* Report: a finished investigation with its impact meter filling in */
-const RAMP = ['var(--accent-100)', 'var(--accent-200)', 'var(--accent-300)', 'var(--accent-400)', 'var(--accent-500)']
-function FauxReport() {
+function Scene({ kind, label, set }: { kind: ArtKind; label: string; set?: ListSet }) {
+  switch (kind) {
+    case 'kpi': return <KpiScene />
+    case 'range': return <RangeScene />
+    case 'scrub': return <ScrubScene label={label} />
+    case 'bars': return <BarsScene />
+    case 'fill': return <FillScene />
+    case 'funnel': return <FunnelScene />
+    case 'agent': return <AgentScene />
+    case 'heat': return <HeatScene />
+    case 'report': return <ReportScene />
+    case 'list': return <ListScene set={set ?? 'pages'} label={label} />
+    case 'retention': return <RetentionScene />
+    case 'donut': return <DonutScene />
+  }
+}
+
+/* ── KPI tile: the period changes and the number, change and dates morph together ── */
+const KP = [
+  { v: '2,569', d: '8.1%', up: true, f: 'Nov 18 – Nov 24', s: [18, 20, 19, 24, 22, 28, 26, 31, 30, 34] },
+  { v: '10,842', d: '12.6%', up: true, f: 'Oct 26 – Nov 24', s: [12, 15, 14, 19, 23, 22, 27, 30, 33, 38] },
+  { v: '31,206', d: '3.4%', up: false, f: 'Aug 27 – Nov 24', s: [30, 34, 31, 29, 33, 30, 27, 29, 26, 27] },
+]
+type KS = { p: 0 | 1 | 2 }
+async function kpiScript(a: Act<KS>) {
+  await a.wait(2000); await a.set({ p: 1 })
+  await a.wait(2200); await a.set({ p: 2 })
+  await a.wait(2200); await a.set({ p: 0 })
+}
+function KpiScene() {
   return (
-    <div className="fx-report">
-      {[{ t: 'Sign-ups dipped after v2.4', n: 4 }, { t: null, n: 2 }].map((r, k) => (
-        <div key={k} className="fx-rrow">
-          <div className="fx-rmain">
-            {r.t ? <span className="fx-rt">{r.t}</span> : <Bar w={108} h={7} tone={2} />}
-            {r.t ? <span className="fx-chip">Completed</span> : <Bar w={52} h={6} tone={1} />}
+    <Close<KS> initial={{ p: 0 }} poster={{ p: 1 }} script={kpiScript}>
+      {(s) => {
+        const k = KP[s.p]
+        return (
+          <div className="cx-card" style={{ left: 20, top: 20, width: 400, height: 220 }}>
+            <div className="cx-kpi-l"><Users size={15} />Active Users</div>
+            <div className="cx-kpi-v num">
+              <TextMorph numbers>{k.v}</TextMorph>
+              <span className={'pill ' + (k.up ? 'up' : 'down')}>{k.up ? '↑' : '↓'}<TextMorph numbers>{k.d}</TextMorph></span>
+            </div>
+            <div className="cx-kpi-f mono"><TextMorph>{k.f}</TextMorph></div>
+            <Chart kind="line" data={k.s} width={400} height={60} max={40} area show className="cx-spark" />
           </div>
-          <span className="fx-meter">
-            {RAMP.map((_, i) => <i key={i} data-on={i < r.n} style={{ background: i < r.n ? RAMP[5 - r.n + i] : undefined, animationDelay: `${300 + k * 200 + i * 90}ms` }} />)}
-          </span>
-        </div>
-      ))}
-    </div>
+        )
+      }}
+    </Close>
   )
 }
 
-/* Ranked list: labels morph and bars slide, as on a tab switch */
-const LISTS: Record<ListSet, { l: string; v: number }[][]> = {
-  pages: [
-    [{ l: '/pricing', v: 38 }, { l: '/docs', v: 27 }, { l: '/blog/launch', v: 19 }],
-    [{ l: '/', v: 44 }, { l: '/pricing', v: 22 }, { l: '/signup', v: 14 }],
-  ],
-  sources: [
-    [{ l: 'google.com', v: 41 }, { l: 'Direct', v: 29 }, { l: 'github.com', v: 12 }],
-    [{ l: 'launch-week', v: 36 }, { l: 'newsletter', v: 24 }, { l: 'x-ads', v: 9 }],
-  ],
-  tech: [
-    [{ l: 'Desktop', v: 62 }, { l: 'Mobile', v: 34 }, { l: 'Tablet', v: 4 }],
-    [{ l: 'Chrome', v: 58 }, { l: 'Safari', v: 27 }, { l: 'Firefox', v: 9 }],
-  ],
-  region: [
-    [{ l: 'Europe/London', v: 31 }, { l: 'America/New_York', v: 24 }, { l: 'Africa/Lagos', v: 13 }],
-    [{ l: 'English', v: 71 }, { l: 'French', v: 11 }, { l: 'German', v: 7 }],
-  ],
+/* ── Date range: pick a longer period, the chart morphs to it (Liveline) ── */
+const RANGE_LINES = {
+  '7': [22, 26, 24, 30, 34, 31, 38, 36, 42, 40, 47, 45, 52, 50],
+  '30': [30, 34, 29, 41, 38, 46, 43, 51, 48, 57, 54, 60, 66, 63],
 }
-function FauxList({ set }: { set: ListSet }) {
-  const rows = LISTS[set][useCycle(2, 2400)]
-  const max = Math.max(...rows.map((r) => r.v))
+const DAYS = Array.from({ length: 14 }, (_, i) => `Day ${i + 1}`)
+type RS = { open: boolean; r: '7' | '30' }
+async function rangeScript(a: Act<RS>) {
+  await a.wait(800)
+  await a.click({ at: 'sel' }); await a.set({ open: true })
+  await a.wait(350)
+  await a.click({ at: 'o30' }); await a.set({ open: false, r: '30' })
+  await a.move({ x: 250, y: 168 })
+  await a.wait(2600)
+  await a.click({ at: 'sel' }); await a.set({ open: true })
+  await a.wait(300)
+  await a.click({ at: 'o7' }); await a.set({ open: false, r: '7' })
+  await a.move({ x: 250, y: 168 })
+  await a.wait(1800)
+}
+function RangeScene() {
   return (
-    <div className="fx-list">
-      {rows.map((r, i) => (
-        <div key={i} className="fx-lrow">
-          <i style={{ width: `${(r.v / max) * 100}%` }} />
-          <span className={set === 'pages' || set === 'sources' ? 'mono' : undefined}><TextMorph>{r.l}</TextMorph></span>
-          <span className="num"><TextMorph numbers>{`${r.v}%`}</TextMorph></span>
-        </div>
-      ))}
-    </div>
+    <Close<RS> initial={{ open: false, r: '7' }} poster={{ open: false, r: '30' }} script={rangeScript} cursor={{ x: 250, y: 168 }}>
+      {(s) => (
+        <>
+          <div className="cx-title" style={{ left: 20, top: 22 }}>Overview</div>
+          <button className="cx-select" data-target="sel" data-cursor="pointer" style={{ right: 20, top: 18 }}>
+            <TextMorph>{s.r === '7' ? 'Last 7 days' : 'Last 30 days'}</TextMorph><ChevronsUpDown size={15} />
+          </button>
+          <div className="cx-card" style={{ left: 20, top: 66, width: 400, height: 170, padding: '14px 0 0' }}>
+            <div style={{ width: 330 }}>
+              <LiveChart mini height={112} labels={DAYS} series={[{ key: 'a', label: 'Active', color: '#d97706', values: RANGE_LINES[s.r] }]} />
+            </div>
+          </div>
+          <div className="cx-menu" data-open={s.open} style={{ right: 20, top: 58 }}>
+            {(['24h', '7', '30'] as const).map((o) => (
+              <div key={o} className="cx-mi" data-target={o === '24h' ? undefined : 'o' + o} data-cursor="pointer">
+                {o === '24h' ? 'Last 24 hours' : `Last ${o} days`}{s.r === o && <Check size={15} />}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </Close>
   )
 }
 
-/* Retention: each weekly cohort fading as weeks pass */
-function FauxRetention() {
-  const rows = 5
+/* ── Line chart: scrub along it, the readout follows the pointer ── */
+const SCRUB = [22, 26, 24, 30, 34, 31, 38, 36, 42, 40, 47, 52]
+const SCRUB_DAYS = ['Nov 13', 'Nov 14', 'Nov 15', 'Nov 16', 'Nov 17', 'Nov 18', 'Nov 19', 'Nov 20', 'Nov 21', 'Nov 22', 'Nov 23', 'Nov 24']
+const SC = { x: 36, y: 70, w: 380, h: 116 } // the chart's box in the stage
+const scrubPts = chartPoints({ data: SCRUB, kind: 'line', width: SC.w, height: SC.h, max: 56 })
+type SS = { i: number }
+async function scrubScript(a: Act<SS>) {
+  await a.wait(700)
+  for (const i of [4, 6, 8]) {
+    const p = scrubPts[i]
+    await a.move({ x: SC.x + p.x, y: SC.y + p.y + 26 }, { duration: 650 })
+    await a.set({ i })
+    await a.wait(900)
+  }
+  await a.move({ x: 300, y: 186 })
+  await a.set({ i: -1 })
+  await a.wait(900)
+}
+function ScrubScene({ label }: { label: string }) {
   return (
-    <div className="fx-ret">
-      {Array.from({ length: rows }, (_, r) => (
-        <div key={r} className="fx-retrow">
-          {Array.from({ length: rows }, (_, c) => {
-            const live = c < rows - r
-            const v = c === 0 ? 1 : Math.max(0.12, 0.62 - c * 0.13 - r * 0.03)
-            return <i key={c} style={live ? { background: `rgba(217,119,6,${v})`, animationDelay: `${(r + c) * 70}ms` } : { background: 'transparent' }} />
-          })}
-        </div>
-      ))}
-    </div>
+    <Close<SS> initial={{ i: -1 }} poster={{ i: 8 }} script={scrubScript} cursor={{ x: 300, y: 186 }}>
+      {(s) => {
+        const p = s.i >= 0 ? scrubPts[s.i] : null
+        return (
+          <div className="cx-card" style={{ left: 20, top: 16, width: 400, height: 220 }}>
+            <div className="cx-head">
+              <span className="cx-h">{label}</span>
+              <span className="cx-read num" data-on={!!p}>
+                <TextMorph>{p ? SCRUB_DAYS[s.i] : SCRUB_DAYS[11]}</TextMorph>
+                <b><TextMorph numbers>{(Math.round(SCRUB[p ? s.i : 11] * 47.3)).toLocaleString('en-US')}</TextMorph></b>
+              </span>
+            </div>
+            <div style={{ position: 'absolute', left: SC.x - 20, top: SC.y - 16 }}>
+              <Chart kind="line" data={SCRUB} width={SC.w} height={SC.h} max={56} area show className="cx-line" />
+              <i className="cx-hair" style={{ left: p?.x ?? 0, opacity: p ? 1 : 0 }} />
+              <i className="cx-dot" style={{ left: p?.x ?? 0, top: p?.y ?? 0, opacity: p ? 1 : 0 }} />
+            </div>
+          </div>
+        )
+      }}
+    </Close>
   )
 }
 
-/* Donut: new vs returning, the split and its share morphing */
-const SPLITS = [64, 58]
-function FauxDonut() {
-  const p = SPLITS[useCycle(SPLITS.length, 2600)]
-  const R = 34, C = 2 * Math.PI * R
+/* ── Event activity: tap a legend chip, that event type leaves the stack ── */
+const STACK = [[34, 22, 8], [38, 26, 9], [44, 24, 10], [30, 18, 7], [33, 20, 8], [48, 30, 11], [56, 34, 12]]
+type BS = { hide: boolean }
+async function barsScript(a: Act<BS>) {
+  await a.wait(900)
+  await a.click({ at: 'chip' }); await a.set({ hide: true })
+  await a.wait(2300)
+  await a.click({ at: 'chip' }); await a.set({ hide: false })
+  await a.wait(1200)
+  await a.move({ x: 290, y: 170 }) // back to the start, so the loop has no jump
+  await a.wait(400)
+}
+function BarsScene() {
   return (
-    <div className="fx-donut">
-      <svg width="92" height="92" viewBox="0 0 92 92">
-        <circle cx="46" cy="46" r={R} fill="none" stroke="#2a78d6" strokeWidth="12" />
-        <circle cx="46" cy="46" r={R} fill="none" stroke="#d97706" strokeWidth="12" strokeDasharray={`${(p / 100) * C - 3} ${C}`}
-          transform="rotate(-90 46 46)" style={{ transition: 'stroke-dasharray .7s cubic-bezier(.23,1,.32,1)' }} />
-      </svg>
-      <div className="fx-dl">
-        <Legend c="#d97706" l="New"><TextMorph numbers>{`${p}%`}</TextMorph></Legend>
-        <Legend c="#2a78d6" l="Returning"><TextMorph numbers>{`${100 - p}%`}</TextMorph></Legend>
+    <Close<BS> initial={{ hide: false }} poster={{ hide: true }} script={barsScript} cursor={{ x: 290, y: 170 }}>
+      {(s) => (
+        <div className="cx-card" style={{ left: 20, top: 16, width: 400, height: 220 }}>
+          <div className="cx-h">Event Activity</div>
+          <div className="cx-chips">
+            <span className="cx-chip"><i style={{ background: '#d97706' }} />Page views</span>
+            <span className="cx-chip" data-off={s.hide} data-target="chip" data-cursor="pointer"><i style={{ background: '#2a78d6' }} />Clicks</span>
+            <span className="cx-chip"><i style={{ background: '#1baf7a' }} />Custom events</span>
+          </div>
+          <div className="cx-stack">
+            {STACK.map(([pv, cl, cu], i) => (
+              <div key={i} className="cx-col">
+                <i style={{ height: cu * 1.5, background: '#1baf7a' }} />
+                <i style={{ height: s.hide ? 0 : cl * 1.5, background: '#2a78d6', marginTop: s.hide ? 0 : 2 }} />
+                <i style={{ height: pv * 1.5, background: '#d97706' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Close>
+  )
+}
+
+/* ── Data switch: Empty clears the chart; Filled brings the data back behind a glimm sweep ── */
+const FILL = [10, 16, 16, 24, 27, 31, 44, 50, 62, 70, 84, 100]
+const SWEEP = accentPair('#d97706', '#feceab')
+type FS = { m: 'filled' | 'empty' }
+async function fillScript(a: Act<FS>) {
+  await a.wait(900)
+  await a.click({ at: 'empty' }); await a.set({ m: 'empty' })
+  await a.wait(1700)
+  await a.click({ at: 'filled' }); await a.set({ m: 'filled' })
+  await a.wait(2000)
+  await a.move({ x: 200, y: 120 }) // back to the start, so the loop has no jump
+  await a.wait(600)
+}
+function FillChart({ m }: { m: FS['m'] }) {
+  const scope = useRef<GlimmScopeHandle>(null)
+  const prev = useRef(m)
+  const filled = m === 'filled'
+  useEffect(() => {
+    // only on empty → filled; StrictMode's second mount sees no change, so no stray sweep
+    if (prev.current === 'empty' && filled) scope.current?.play({}) // the band passes over the data as it lands
+    prev.current = m
+  }, [m, filled])
+  return (
+    <GlimmScope ref={scope} palette={SWEEP} direction="ltr" sweepMs={1300} curve={0.06} bandTight={34} pageEffect={false} style={{ position: 'absolute', inset: 0 }}>
+      <div className="fx-fill" data-filled={filled}>
+        <div className="fx-fill-grid">{[0, 1, 2, 3].map((i) => <i key={i} />)}</div>
+        <div className="fx-fill-bars">
+          {FILL.map((h, i) => (
+            <span key={i} style={{ height: `${h}%`, transitionDelay: filled ? `${i * 25}ms` : '0ms' }}><b style={{ height: `${Math.max(20, h - 8)}%` }} /></span>
+          ))}
+        </div>
+        <div className="fx-fill-empty"><b>No visits in this period</b><span>Try a longer period.</span></div>
       </div>
-    </div>
+    </GlimmScope>
   )
 }
-function Legend({ c, l, children }: { c: string; l: string; children: ReactNode }) {
-  return <div className="fx-leg"><i style={{ background: c }} />{l}<span className="num">{children}</span></div>
+function FillScene() {
+  return (
+    <Close<FS> initial={{ m: 'filled' }} poster={{ m: 'filled' }} script={fillScript} cursor={{ x: 200, y: 120 }}>
+      {(s) => (
+        <>
+          <div className="cx-card" style={{ left: -14, top: -14, width: 350, height: 156, padding: '28px 16px 12px 30px' }}>
+            <div style={{ position: 'relative', height: 112 }}><FillChart m={s.m} /></div>
+          </div>
+          <div className="cx-dock" style={{ right: 16, top: 152 }}>
+            <span className="cx-dock-l">Data</span>
+            <span className="cx-seg">
+              <i className="cx-thumb" style={{ left: s.m === 'filled' ? 3 : 141, width: s.m === 'filled' ? 64 : 62 }} />
+              <span data-on={s.m === 'filled'} data-target="filled" data-cursor="pointer">Filled</span>
+              <span>Loading</span>
+              <span data-on={s.m === 'empty'} data-target="empty" data-cursor="pointer">Empty</span>
+            </span>
+          </div>
+        </>
+      )}
+    </Close>
+  )
+}
+
+/* ── Funnel: each step lands in order, with the drop between them ── */
+const FUN = [{ l: '/', v: 100 }, { l: '/pricing', v: 64 }, { l: '/signup', v: 38 }, { l: '/checkout', v: 21 }]
+type FuS = { n: number }
+async function funnelScript(a: Act<FuS>) {
+  for (let n = 1; n <= 4; n++) { await a.wait(n === 1 ? 500 : 420); await a.set({ n }) }
+  await a.wait(2800)
+  await a.set({ n: 0 })
+  await a.wait(500)
+}
+function FunnelScene() {
+  const colW = 64, gap = 36, base = 156, span = 80 // tallest column tops out at 68, clear of the title
+  return (
+    <Close<FuS> initial={{ n: 0 }} poster={{ n: 4 }} script={funnelScript}>
+      {(s) => (
+        <div className="cx-card" style={{ left: 20, top: 16, width: 400, height: 220 }}>
+          <div className="cx-head"><span className="cx-h">Conversion Funnel</span></div>
+          <svg className="cx-funnel" width={400} height={200} style={{ position: 'absolute', left: 0, top: 0 }}>
+            {FUN.map((f, i) => {
+              const x = 20 + i * (colW + gap), h = (span * f.v) / 100 + 8
+              const next = FUN[i + 1], on = s.n > i, flowOn = s.n > i + 1
+              const nh = next ? (span * next.v) / 100 + 8 : 0
+              return (
+                <g key={f.l}>
+                  {next && <path d={`M${x + colW},${base - h} L${x + colW + gap},${base - nh} L${x + colW + gap},${base} L${x + colW},${base} Z`}
+                    fill="#d97706" opacity={flowOn ? 0.18 : 0} style={{ transition: 'opacity .4s ease' }} />}
+                  <rect x={x} y={base - h} width={colW} height={h} rx={4} fill="#d97706" opacity={1 - i * 0.14}
+                    style={{ transformOrigin: `${x}px ${base}px`, transform: on ? 'none' : 'scaleY(0)', transition: 'transform .5s cubic-bezier(.23,1,.32,1)' }} />
+                  <text x={x} y={base + 18} className="cx-fl">{f.l}</text>
+                  <text x={x + colW / 2} y={base - h - 8} textAnchor="middle" className="cx-fv" opacity={on ? 1 : 0} style={{ transition: 'opacity .3s ease' }}>{f.v}%</text>
+                </g>
+              )
+            })}
+          </svg>
+        </div>
+      )}
+    </Close>
+  )
+}
+
+/* ── Agent: type a question, send it, the queries run and the answer comes back as a chart ── */
+type AS = { q: string; sent: boolean; phase: 0 | 1 | 2 }
+async function agentScript(a: Act<AS>) {
+  await a.wait(500)
+  await a.type('q', 'Why did sign-ups dip?', { interval: 45 })
+  await a.wait(200)
+  await a.click({ at: 'send' }); await a.set({ sent: true, q: '', phase: 1 })
+  await a.move({ x: 300, y: 112 })
+  await a.wait(1200)
+  await a.set({ phase: 2 })
+  await a.wait(2600)
+  await a.set({ sent: false, phase: 0 })
+  await a.move({ x: 318, y: 184 })
+  await a.wait(400)
+}
+function AgentScene() {
+  return (
+    <Close<AS> initial={{ q: '', sent: false, phase: 0 }} poster={{ q: '', sent: true, phase: 2 }} script={agentScript} cursor={{ x: 318, y: 184 }}>
+      {(s) => (
+        <>
+          <div className="cx-q" data-on={s.sent} style={{ right: 20, top: 14 }}>Why did sign-ups dip?</div>
+          <div className="cx-run" data-on={s.phase > 0} style={{ left: 20, top: 48 }}>
+            <img src="/brand/ferno-agent.svg" width={16} height={16} alt="" className={s.phase === 1 ? 'mark-think' : undefined} />
+            <TextMorph>{s.phase === 2 ? 'Ran 3 queries' : 'Running queries…'}</TextMorph>
+          </div>
+          <div className="cx-ans" data-on={s.phase === 2} style={{ left: 20, top: 74 }}>
+            <Bar w={210} h={7} tone={2} />
+            <Chart kind="line" data={[30, 32, 31, 34, 33, 22, 24, 26]} width={210} height={34} area show={s.phase === 2} className="cx-line" />
+          </div>
+          <div className="cx-composer" style={{ left: 20, top: 122, width: 340 }}>
+            <div className={'cx-input' + (s.q ? '' : ' ph')}>{s.q || 'Ask about sign-ups, a page…'}</div>
+            <div className="cx-crow">
+              <span className="cx-cchip">Last 7 days</span>
+              <span className="cx-send" data-ready={!!s.q} data-target="send" data-cursor="pointer"><Send size={14} /></span>
+            </div>
+          </div>
+        </>
+      )}
+    </Close>
+  )
+}
+
+/* ── Heatmap: repeated clicks on one spot heat it up and flag a rage click ── */
+type HS = { n: number }
+async function heatScript(a: Act<HS>) {
+  await a.wait(600)
+  await a.move({ at: 'cta' })
+  for (let n = 1; n <= 4; n++) { await a.click({ at: 'cta' }); await a.set({ n }); await a.wait(70) }
+  await a.move({ x: 300, y: 70 })
+  await a.wait(2400)
+  await a.set({ n: 0 })
+  await a.wait(600)
+}
+function HeatScene() {
+  return (
+    <Close<HS> initial={{ n: 0 }} poster={{ n: 4 }} script={heatScript} cursor={{ x: 300, y: 70 }}>
+      {(s) => (
+        <div className="cx-card cx-page" style={{ left: 20, top: 16, width: 400, height: 220 }}>
+          <div className="cx-pnav"><Bar w={44} h={8} tone={3} /><Bar w={28} h={6} tone={1} /><Bar w={28} h={6} tone={1} /></div>
+          <Bar w={190} h={12} tone={3} />
+          <Bar w={140} h={8} tone={1} />
+          <span className="cx-cta" data-target="cta" data-cursor="pointer">Export</span>
+          <div className="cx-pcards"><i /><i /><i /></div>
+          <span className="cx-blob" style={{ left: 250, top: 22, ['--s' as string]: '54px', opacity: .55 }} />
+          <span className="cx-blob" style={{ left: 80, top: 172, ['--s' as string]: '70px', opacity: .45 }} />
+          <span className="cx-blob" style={{ left: 50, top: 112, ['--s' as string]: `${40 + s.n * 16}px`, opacity: s.n ? 0.5 + s.n * 0.12 : 0 }} />
+          <span className="cx-rage" data-on={s.n >= 3} style={{ left: 50, top: 112 }} />
+        </div>
+      )}
+    </Close>
+  )
+}
+
+/* ── Report: the investigation finishes; status, impact and meter land with it ── */
+const RAMP = ['var(--accent-100)', 'var(--accent-200)', 'var(--accent-300)', 'var(--accent-400)', 'var(--accent-500)']
+type RpS = { done: boolean }
+async function reportScript(a: Act<RpS>) {
+  await a.wait(1500); await a.set({ done: true })
+  await a.wait(3200); await a.set({ done: false })
+  await a.wait(300)
+}
+function ReportScene() {
+  return (
+    <Close<RpS> initial={{ done: false }} poster={{ done: true }} script={reportScript}>
+      {(s) => (
+        <>
+          <div className="cx-card cx-rrow" style={{ left: 16, top: 16, width: 328, height: 150 }}>
+            <div className="cx-rmeta"><span className="mono">dead_click · /pricing</span><span>Nov 24</span></div>
+            <div className="cx-rt">Dead clicks on the pricing toggle</div>
+            <div className="cx-rfoot">
+              <span className="cx-change">Change <b className="up num">↑ 1,033%</b></span>
+              {/* the Reports page's own status chip */}
+              <span className={'rp-status ' + (s.done ? 'done' : 'running')}>
+                {s.done ? <Check size={12} strokeWidth={2.5} /> : <Loader2 size={12} className="spin" />}<TextMorph>{s.done ? 'Completed' : 'Investigating'}</TextMorph>
+              </span>
+              <span className="cx-meter" data-on={s.done}>
+                {RAMP.map((_, i) => <i key={i} style={{ background: s.done && i < 4 ? RAMP[1 + i] : undefined, transitionDelay: s.done ? `${i * 80}ms` : '0ms' }} />)}
+              </span>
+            </div>
+          </div>
+          <div className="cx-card" style={{ left: 16, top: 174, width: 328, height: 60 }}><Bar w={150} h={8} tone={2} /></div>
+        </>
+      )}
+    </Close>
+  )
+}
+
+/* ── Ranked list: switch the tab, labels morph and bars slide ── */
+const LISTS: Record<ListSet, { tabs: [string, string]; mono: boolean; rows: { l: string; v: number }[][] }> = {
+  pages: { tabs: ['Top', 'Entry'], mono: true, rows: [
+    [{ l: '/', v: 43 }, { l: '/pricing', v: 20 }, { l: '/docs', v: 14 }, { l: '/blog', v: 10 }],
+    [{ l: '/pricing', v: 38 }, { l: '/', v: 31 }, { l: '/signup', v: 12 }, { l: '/docs', v: 8 }],
+  ] },
+  sources: { tabs: ['Sources', 'Campaigns'], mono: false, rows: [
+    [{ l: 'Direct', v: 43 }, { l: 'Google', v: 27 }, { l: 'X (Twitter)', v: 12 }, { l: 'Slack', v: 9 }],
+    [{ l: 'launch_week', v: 46 }, { l: 'newsletter', v: 24 }, { l: 'x_ads', v: 11 }, { l: 'partners', v: 6 }],
+  ] },
+  tech: { tabs: ['Devices', 'Browsers'], mono: false, rows: [
+    [{ l: 'Desktop', v: 64 }, { l: 'Mobile', v: 31 }, { l: 'Tablet', v: 5 }, { l: 'Other', v: 1 }],
+    [{ l: 'Chrome', v: 58 }, { l: 'Safari', v: 27 }, { l: 'Firefox', v: 9 }, { l: 'Edge', v: 5 }],
+  ] },
+  region: { tabs: ['Timezones', 'Languages'], mono: false, rows: [
+    [{ l: 'Africa/Lagos', v: 31 }, { l: 'Europe/London', v: 23 }, { l: 'America/New_York', v: 20 }, { l: 'Asia/Kolkata', v: 9 }],
+    [{ l: 'English', v: 71 }, { l: 'French', v: 11 }, { l: 'German', v: 7 }, { l: 'Yoruba', v: 4 }],
+  ] },
+}
+type LS = { t: 0 | 1 }
+async function listScript(a: Act<LS>) {
+  await a.wait(900)
+  await a.click({ at: 'tab1' }); await a.set({ t: 1 })
+  await a.wait(2400)
+  await a.click({ at: 'tab0' }); await a.set({ t: 0 })
+  await a.wait(1400)
+  await a.move({ x: 220, y: 170 }) // back to the start, so the loop has no jump
+  await a.wait(400)
+}
+function ListScene({ set, label }: { set: ListSet; label: string }) {
+  const L = LISTS[set]
+  return (
+    <Close<LS> initial={{ t: 0 }} poster={{ t: 1 }} script={listScript} cursor={{ x: 220, y: 170 }}>
+      {(s) => {
+        const rows = L.rows[s.t], max = Math.max(...rows.map((r) => r.v))
+        return (
+          <div className="cx-card" style={{ left: 16, top: 16, width: 328, height: 220 }}>
+            <div className="cx-head">
+              <span className="cx-h">{label}</span>
+              <span className="cx-tabs">
+                {L.tabs.map((t, i) => <span key={t} data-on={s.t === i} data-target={'tab' + i} data-cursor="pointer">{t}</span>)}
+              </span>
+            </div>
+            <div className="cx-list">
+              {rows.map((r, i) => (
+                <div key={i} className="cx-lrow">
+                  <i style={{ width: `${(r.v / max) * 100}%` }} />
+                  <span className={L.mono ? 'mono' : undefined}><TextMorph>{r.l}</TextMorph></span>
+                  <span className="num"><TextMorph numbers>{`${r.v}%`}</TextMorph></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }}
+    </Close>
+  )
+}
+
+/* ── New vs returning: point at a group, its share comes forward ── */
+type DS = { f: 'n' | 'r' | null }
+async function donutScript(a: Act<DS>) {
+  await a.wait(800)
+  await a.move({ at: 'lr' }); await a.set({ f: 'r' })
+  await a.wait(1800)
+  await a.move({ at: 'ln' }); await a.set({ f: 'n' })
+  await a.wait(1800)
+  await a.move({ x: 320, y: 186 }); await a.set({ f: null })
+  await a.wait(1000)
+}
+function DonutScene() {
+  const R = 48, C = 2 * Math.PI * R, p = 62
+  return (
+    <Close<DS> initial={{ f: null }} poster={{ f: 'r' }} script={donutScript} cursor={{ x: 320, y: 186 }}>
+      {(s) => (
+        <div className="cx-card" style={{ left: 16, top: 16, width: 328, height: 220 }}>
+          <div className="cx-h">New vs. Returning</div>
+          <div className="cx-donut">
+            <svg width="124" height="124" viewBox="0 0 124 124">
+              <circle cx="62" cy="62" r={R} fill="none" stroke="#2a78d6" strokeWidth="16" opacity={s.f === 'n' ? 0.25 : 1} style={{ transition: 'opacity .25s ease' }} />
+              <circle cx="62" cy="62" r={R} fill="none" stroke="#d97706" strokeWidth="16" strokeDasharray={`${(p / 100) * C - 3} ${C}`} transform="rotate(-90 62 62)"
+                opacity={s.f === 'r' ? 0.25 : 1} style={{ transition: 'opacity .25s ease' }} />
+              <text x="62" y="60" textAnchor="middle" className="cx-dn num">{s.f === 'r' ? '1,285' : s.f === 'n' ? '2,096' : '3,381'}</text>
+              <text x="62" y="78" textAnchor="middle" className="cx-ds">{s.f === 'r' ? 'returning' : s.f === 'n' ? 'new' : 'visitors'}</text>
+            </svg>
+            <div className="cx-legend">
+              <div data-target="ln" data-dim={s.f === 'r'}><i style={{ background: '#d97706' }} />New<b className="num">62%</b></div>
+              <div data-target="lr" data-dim={s.f === 'n'}><i style={{ background: '#2a78d6' }} />Returning<b className="num">38%</b></div>
+            </div>
+          </div>
+        </div>
+      )}
+    </Close>
+  )
+}
+
+/* ── Retention: hover a cell for that cohort's share in that week ── */
+const COHORTS = [['Nov 3', [100, 46, 38, 31]], ['Nov 10', [100, 52, 41, 0]], ['Nov 17', [100, 49, 0, 0]], ['Nov 24', [100, 0, 0, 0]]] as const
+type ReS = { hover: boolean }
+async function retentionScript(a: Act<ReS>) {
+  await a.wait(800)
+  await a.move({ at: 'cell' }); await a.set({ hover: true })
+  await a.wait(2600)
+  await a.move({ x: 320, y: 190 }); await a.set({ hover: false })
+  await a.wait(1000)
+}
+function RetentionScene() {
+  return (
+    <Close<ReS> initial={{ hover: false }} poster={{ hover: true }} script={retentionScript} cursor={{ x: 320, y: 190 }}>
+      {(s) => (
+        <div className="cx-card" style={{ left: 16, top: 16, width: 400, height: 220 }}>
+          <div className="cx-h">Weekly Retention</div>
+          <div className="cx-ret">
+            <span /><span>Week 0</span><span>Week 1</span><span>Week 2</span><span>Week 3</span>
+            {COHORTS.map(([c, vals]) => (
+              <div key={c} className="cx-retrow">
+                <span className="cx-rc">{c}</span>
+                {vals.map((v, w) => (
+                  <i key={w} data-target={c === 'Nov 10' && w === 2 ? 'cell' : undefined}
+                    data-hot={s.hover && c === 'Nov 10' && w === 2}
+                    style={{ background: v ? `rgba(217,119,6,${w === 0 ? 0.9 : v / 80})` : 'var(--n-50)', color: w === 0 || v > 45 ? '#fff' : 'var(--n-900)' }}>
+                    {v ? `${v}%` : ''}
+                  </i>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="cx-tt" data-on={s.hover} style={{ left: 214, top: 140 }}>Nov 10 · week 2 <b className="num">41%</b></div>
+        </div>
+      )}
+    </Close>
+  )
 }

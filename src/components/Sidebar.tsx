@@ -53,9 +53,9 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { go: rawGo, route, tipStyle, setTipStyle, startTour } = useApp()
   // prototype-only controls, kept apart from the product's own navigation
   const PROTO: Item[] = [
-    { id: 'tour', label: 'Take the tour', icon: <Compass size={16} />, onClick: () => { startTour(); onNavigate?.() } },
+    { id: 'proto-tour', label: 'Take the tour', icon: <Compass size={16} />, onClick: () => { startTour(); onNavigate?.() } },
     {
-      id: 'tips', label: 'Tooltip style', icon: <MessageSquare size={16} />, onClick: () => setTipStyle(tipStyle === 'figma' ? 'classic' : 'figma'),
+      id: 'proto-tips', label: 'Tooltip style', icon: <MessageSquare size={16} />, onClick: () => setTipStyle(tipStyle === 'figma' ? 'classic' : 'figma'),
       trail: <span className="nav-trail nav-label"><TextMorph>{tipStyle === 'figma' ? 'New' : 'Classic'}</TextMorph></span>,
     },
   ]

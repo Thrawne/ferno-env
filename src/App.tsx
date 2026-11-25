@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Menu } from 'lucide-react'
 import { Sidebar, WsTile } from './components/Sidebar'
 import { AppCtx, EmptyState, PageHeader, PixelCorner, Seg, type Mode, type TipStyle } from './components/ui'
-import { Tour } from './components/Tip'
+import { TipGallery, Tour } from './components/Tip'
 import type { Range } from './data'
 import { Overview } from './pages/Overview'
 import { Analytics } from './pages/Analytics'
@@ -108,6 +108,7 @@ export default function App() {
   else if (route === 'reports') page = <Reports />
   else if (route.startsWith('report/')) page = <ReportDetail id={route.slice(7)} />
   else if (route === 'agent') page = <AgentHome onAsk={ask} />
+  else if (route === 'tips') page = <div className="page fade-page"><PageHeader title="Tips" sub="Every tour step and info tip, for review." /><TipGallery /></div>
   else if (route === 'chat') page = msgs.length ? <Chat msgs={msgs} onAsk={ask} /> : <AgentHome onAsk={ask} />
   else {
     const [t, s] = TITLES[route] ?? ['Not found', '']
