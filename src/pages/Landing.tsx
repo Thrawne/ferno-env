@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { GlimmScope, type GlimmScopeHandle } from 'glimm/react'
+import { accentPair } from 'glimm'
 import { TextMorph } from 'torph/react'
-import { ArrowRight, ArrowUpRight, Check, ChevronDown, CircleDashed, Loader2, Menu, ShieldCheck, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpRight, Check, ChevronDown, CircleDashed, Loader2, Menu, ShieldCheck, X } from 'lucide-react'
 import { FernoMark, useApp } from '../components/ui'
 import { CopyButton } from '../components/overlay'
+import { LiveChart, type LiveSeries } from '../charts/LiveChart'
 import './landing.css'
 
 /**
@@ -71,6 +74,15 @@ export function Landing() {
     el.addEventListener('scroll', on, { passive: true })
     return () => el.removeEventListener('scroll', on)
   }, [])
+  // the phone menu closes on Escape and when the window grows past the breakpoint
+  useEffect(() => {
+    if (!menu) return
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
+    const mq = matchMedia('(min-width: 769px)')
+    const r = () => { if (mq.matches) setMenu(false) }
+    window.addEventListener('keydown', k); mq.addEventListener('change', r)
+    return () => { window.removeEventListener('keydown', k); mq.removeEventListener('change', r) }
+  }, [menu])
   const nav = (id: string) => { setMenu(false); scrollTo(id) }
   const start = () => go('signin')
 
@@ -93,10 +105,12 @@ export function Landing() {
             <button className="ld-burger" aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu} onClick={() => setMenu((m) => !m)}>{menu ? <X size={18} /> : <Menu size={18} />}</button>
           </div>
         </div>
-        <div className="ld-sheet" hidden={!menu}>
-          {LINKS.map(([l, id]) => <button key={id} onClick={() => nav(id)}>{l}</button>)}
-          <button onClick={() => go('docs')}>Docs<ArrowUpRight size={14} /></button>
-          <button onClick={() => go('signin')}>Sign in</button>
+        <div className="ld-sheet" data-open={menu} inert={!menu}>
+          <div>
+            {LINKS.map(([l, id]) => <button key={id} onClick={() => nav(id)}>{l}</button>)}
+            <button onClick={() => go('docs')}>Docs<ArrowUpRight size={14} /></button>
+            <button onClick={() => go('signin')}>Sign in</button>
+          </div>
         </div>
       </header>
 
@@ -181,6 +195,9 @@ export function Landing() {
         </section>
       </main>
 
+      {/* prototype only: back to the app you came from */}
+      <button className="ld-proto" onClick={() => go('overview')}><ArrowLeft size={14} />Back to the app</button>
+
       <footer className="ld-foot ld-wrap">
         <div className="ld-logo static"><FernoMark size={20} /><span>ferno</span></div>
         <nav aria-label="Footer">
@@ -215,7 +232,14 @@ function Calls() {
   return <>{c.map((x, i) => <span key={x}><code className="ld-inline mono">{x}</code>{i < c.length - 2 ? ', ' : i === c.length - 2 ? ', and ' : ''}</span>)} calls</>
 }
 
-/* ───────── Hero shot: a signal, the question, the cause and its evidence ───────── */
+/* ───────── Hero shot ─────────
+ * One investigation in nine beats, played once when it comes into view:
+ * the cursor picks the Sign-ups signal, its week draws in (Liveline), the
+ * question is asked, the answer card holds a skeleton while Ferno checks the
+ * fields (the label morphs through them with torph), then glimm sweeps the
+ * accent glow across as the answer fills in, and the evidence follows. The
+ * window is a fixed height that runs off the ground; the thread scrolls up as
+ * the answer grows, like the real chat. Reduced motion: the last beat. */
 const SIGNALS = [
   { name: 'Sign-ups', ch: '−18%', when: '2h ago', down: true },
   { name: 'Purchases', ch: '+9%', when: 'Yesterday', down: false },
@@ -226,15 +250,61 @@ const EVIDENCE = [
   { t: 'Sign-ups on iPhone and web stayed normal.', v: 'Supports' },
   { t: 'Ad traffic held steady, so fewer visitors isn’t the reason.', v: 'Not the cause' },
 ]
+const WEEK = ['Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed']
+const SIGNUPS: LiveSeries[] = [{ key: 'su', label: 'Sign-ups', color: '#d97706', values: [418, 402, 396, 410, 421, 352, 336] }]
+const SWEEP = accentPair('#d97706', '#feceab')
+const CHECKS = ['Checking device…', 'Checking app_version…', 'Checking signup_source…']
 
 function HeroShot() {
   const [ref, seen] = useSeen<HTMLDivElement>(0.25)
-  // select the signal · ask · think · answer · three pieces of evidence · the fix
-  const b = useBeats(seen, [500, 1200, 1900, 3100, 3600, 4100, 4700])
+  // 1 click · 2 chart · 3 ask · 4-6 checking · 7 answer · 8-10 evidence · 11 fix
+  const b = useBeats(seen, [900, 1250, 2500, 3200, 3800, 4400, 5000, 5700, 6100, 6500, 7100])
+  const thinking = b >= 4 && b < 7
+  const cap = b >= 7 ? 'Likely cause' : thinking ? CHECKS[b - 4] : 'Checking…'
+
+  // glimm: the accent band crosses the card the moment the answer replaces the skeleton
+  const scope = useRef<GlimmScopeHandle>(null)
+  const swept = useRef(false)
+  useEffect(() => {
+    if (b >= 7 && !swept.current) { swept.current = true; if (!reduced()) scope.current?.play({}) }
+  }, [b])
+
+  // the cursor travels from the corner to the first signal, then presses it
+  const win = useRef<HTMLDivElement>(null)
+  const sig = useRef<HTMLDivElement>(null)
+  const [cur, setCur] = useState<{ x: number; y: number } | null>(null)
+  useLayoutEffect(() => {
+    const place = () => {
+      const w = win.current?.getBoundingClientRect(), r = sig.current?.getBoundingClientRect()
+      if (w && r) setCur({ x: r.left - w.left + r.width * 0.42, y: r.top - w.top + r.height * 0.55 })
+    }
+    place()
+    window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
+  }, [])
+
+  // the thread follows its newest content, as the chat does
+  const thread = useRef<HTMLDivElement>(null)
+  const inner = useRef<HTMLDivElement>(null)
+  const [lift, setLift] = useState(0)
+  useEffect(() => {
+    const t = thread.current, i = inner.current
+    if (!t || !i || typeof ResizeObserver === 'undefined') return
+    // never past the answer's headline: on a short window the evidence runs off the bottom instead
+    const fit = () => {
+      const cause = i.querySelector<HTMLElement>('.ld-cause-g')
+      const cap = cause ? cause.offsetTop - 16 : Infinity
+      setLift(Math.max(0, Math.min(i.offsetHeight - t.clientHeight, cap)))
+    }
+    const ro = new ResizeObserver(fit)
+    ro.observe(i); ro.observe(t)
+    return () => ro.disconnect()
+  }, [])
+
   return (
-    <div className="ld-stage" ref={ref}>
+    <div className="ld-stage hero" ref={ref}>
       <Glitch />
-      <div className="ld-win" aria-label="Ferno, showing why sign-ups dropped (sample data)" role="img">
+      <div className="ld-win" ref={win} aria-label="Ferno, showing why sign-ups dropped (sample data)" role="img">
         <div className="ld-win-bar">
           <span className="ld-win-ws"><span className="ld-ws-tile" />Acme</span>
           <span className="ld-win-tab on">Overview</span>
@@ -245,71 +315,92 @@ function HeroShot() {
           <aside className="ld-signals">
             <p className="ld-cap">Signals</p>
             {SIGNALS.map((s, i) => (
-              <div key={s.name} className={'ld-sig' + (i === 0 && b >= 1 ? ' on' : '')}>
+              <div key={s.name} ref={i === 0 ? sig : undefined} className={'ld-sig' + (i === 0 && b >= 1 ? ' on' : '') + (i === 0 && b === 0 && cur ? ' hover' : '')}>
                 <span className="ld-sig-n">{s.name}</span>
                 <span className={'ld-sig-c num ' + (s.down ? 'down' : 'up')}>{s.ch}</span>
                 <span className="ld-sig-w">{s.when}</span>
               </div>
             ))}
+            <div className="ld-sig-more" aria-hidden><i /><i /><i /></div>
           </aside>
-          <div className="ld-thread">
-            <div className={'ld-ask' + (b >= 2 ? ' in' : '')}>Why did fewer people finish signing up this week?</div>
-            <div className={'ld-think' + (b >= 3 && b < 4 ? ' in' : '')}><FernoMark size={14} animate />Checking device, app_version, signup_source…</div>
-            <div className={'ld-cause' + (b >= 4 ? ' in' : '')}>
-              <div className="ld-cause-h"><span className="ld-cap accent">Likely cause</span><span className="ld-conf"><i />High confidence</span></div>
-              <p className="ld-cause-t">Tuesday’s update broke the Continue button on the Android sign-up form.</p>
-              <ul className="ld-ev">
-                {EVIDENCE.map((e, i) => (
-                  <li key={i} className={b >= 5 + i ? 'in' : ''}>
-                    <span className="ld-ev-t">{e.d ? <><b>{e.t}</b>{e.d}</> : e.t}</span>
-                    <span className={'ld-tag ' + (e.v === 'Supports' ? 'ok' : 'no')}>{e.v}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className={'ld-fix' + (b >= 7 ? ' in' : '')}>
-                <span><span className="ld-dim">Suggested fix:</span> Roll back the sign-up form change</span>
-                <span className="ld-checked"><span className="ld-dim">Checked</span>{['device', 'app_version', 'signup_source'].map((x) => <code key={x} className="mono">{x}</code>)}</span>
+          <div className="ld-thread" ref={thread}>
+            <div className="ld-thread-in" ref={inner} style={{ transform: `translateY(${-lift}px)` }}>
+              <div className={'ld-chart' + (b >= 2 ? ' in' : '')}>
+                <div className="ld-chart-h">
+                  <span><b>Sign-ups</b><span className="ld-dim">Last 7 days</span></span>
+                  <span className="ld-sig-c down num">−18%</span>
+                </div>
+                <div className="ld-chart-c">{b >= 2 && <LiveChart series={SIGNUPS} labels={WEEK} height={120} mini referenceLine={{ value: 409 }} />}</div>
+              </div>
+              <div className={'ld-ask' + (b >= 3 ? ' in' : '')}>Why did fewer people finish signing up this week?</div>
+              <div className={'ld-cause-g' + (b >= 4 ? ' in' : '')}>
+              <GlimmScope ref={scope} palette={SWEEP} direction="ltr" sweepMs={1100} curve={0.06} bandTight={30} pageEffect={false}>
+                <div className="ld-cause" data-filled={b >= 7}>
+                  <div className="ld-cause-h">
+                    <span className="ld-cap accent">{thinking && <FernoMark size={13} animate />}<TextMorph>{cap}</TextMorph></span>
+                    <span className="ld-conf"><i />High confidence</span>
+                  </div>
+                  <div className="ld-skel" aria-hidden><i /><i /><i /></div>
+                  <div className="ld-cause-body">
+                    <p className="ld-cause-t">Tuesday’s update broke the Continue button on the Android sign-up form.</p>
+                    <ul className="ld-ev">
+                      {EVIDENCE.map((e, i) => (
+                        <li key={i} className={b >= 8 + i ? 'in' : ''}>
+                          <span className="ld-ev-t">{e.d ? <><b>{e.t}</b>{e.d}</> : e.t}</span>
+                          <span className={'ld-tag ' + (e.v === 'Supports' ? 'ok' : 'no')}>{e.v}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className={'ld-fix' + (b >= 11 ? ' in' : '')}>
+                      <span><span className="ld-dim">Suggested fix:</span> Roll back the sign-up form change</span>
+                      <span className="ld-checked"><span className="ld-dim">Checked</span>{['device', 'app_version', 'signup_source'].map((x) => <code key={x} className="mono">{x}</code>)}</span>
+                    </div>
+                  </div>
+                </div>
+              </GlimmScope>
               </div>
             </div>
           </div>
         </div>
+        {cur && (
+          <span className={'ld-cursor' + (b >= 1 ? ' gone' : '') + (b === 0 && seen ? ' go' : '')} aria-hidden
+            style={{ '--cx': cur.x + 'px', '--cy': cur.y + 'px' } as React.CSSProperties}>
+            <svg width="20" height="22" viewBox="0 0 20 22"><path d="M2 1.5v16.2l4.3-4.1 2.9 6.6 3-1.3-2.9-6.5H16L2 1.5Z" fill="#181818" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round" /></svg>
+          </span>
+        )}
       </div>
     </div>
   )
 }
 
-/* ───────── 01: four questions, each with its own small picture ───────── */
+/* ───────── 01: four questions, each with its own small picture ─────────
+ * The two charts are Liveline (mini: no grid, badge or scrub), mounted when
+ * the row comes into view so they draw in; the bars grow from their start. */
+const DROP: LiveSeries[] = [{ key: 'a', label: 'Sign-ups', color: '#d97706', values: [410, 404, 416, 408, 412, 350, 336] }]
+const NOISE: LiveSeries[] = [{ key: 'b', label: 'Sign-ups', color: '#a4a4a4', values: [402, 414, 398, 411, 405, 409, 342] }]
 function Questions() {
   const [ref, seen] = useSeen<HTMLDivElement>(0.3)
   return (
     <div className={'ld-qs' + (seen ? ' seen' : '')} ref={ref}>
       <div className="ld-q">
-        <div className="ld-q-art">
-          <svg viewBox="0 0 220 96" className="ld-spark" aria-hidden>
-            <path className="ld-spark-l" d="M4 44 C 30 40, 46 34, 66 38 S 104 30, 124 36 S 146 40, 152 42 C 162 60, 170 72, 186 74 S 208 72, 216 70" />
-            <circle cx="216" cy="70" r="4" className="ld-spark-d" />
-          </svg>
+        <div className="ld-q-art ld-q-chart">
           <span className="ld-pill down num">−18%</span>
+          <div className="ld-q-live">{seen && <LiveChart series={DROP} labels={WEEK} height={88} mini />}</div>
         </div>
         <h3>What changed?</h3>
       </div>
       <div className="ld-q">
         <div className="ld-q-art ld-who">
           {[['Android', 34], ['iPhone', 86], ['Web', 82]].map(([l, w], i) => (
-            <div key={l} className="ld-who-r"><span>{l}</span><i><b style={{ width: w + '%', transitionDelay: i * 90 + 'ms' }} className={i === 0 ? 'hit' : ''} /></i></div>
+            <div key={l} className="ld-who-r"><span>{l}</span><i><b style={{ width: w + '%', transitionDelay: 150 + i * 70 + 'ms' }} className={i === 0 ? 'hit' : ''} /></i></div>
           ))}
         </div>
         <h3>Who felt it?</h3>
       </div>
       <div className="ld-q">
-        <div className="ld-q-art">
-          <svg viewBox="0 0 220 96" className="ld-band" aria-hidden>
-            <rect x="0" y="22" width="220" height="30" rx="4" className="ld-band-r" />
-            <path className="ld-band-l" d="M4 38 L 30 34 L 56 41 L 82 35 L 108 39 L 134 33 L 160 40 L 186 37" />
-            <path className="ld-band-j" d="M186 37 L 212 80" />
-            <circle cx="212" cy="80" r="4" className="ld-spark-d" />
-          </svg>
-          <span className="ld-pill num mono">outside normal range</span>
+        <div className="ld-q-art ld-q-chart">
+          <span className="ld-pill">Outside its normal range</span>
+          <div className="ld-q-live">{seen && <LiveChart series={NOISE} labels={WEEK} height={88} mini referenceLine={{ value: 407 }} />}</div>
         </div>
         <h3>Is it real?</h3>
       </div>
@@ -402,12 +493,17 @@ function Handoff() {
   )
 }
 
-/* ───────── 04: the SDK, and an event arriving ───────── */
+/* ───────── 04: the SDK, and the first event landing ─────────
+ * The track call lights up, the status morphs (torph) to "received", and the
+ * project's Overview tile goes from empty to filled under a glimm sweep. */
 function Sdk() {
   const [ref, seen] = useSeen<HTMLDivElement>(0.4)
-  const b = useBeats(seen, [1400])
+  const b = useBeats(seen, [1400, 2000])
+  const scope = useRef<GlimmScopeHandle>(null)
+  const swept = useRef(false)
+  useEffect(() => { if (b >= 2 && !swept.current) { swept.current = true; if (!reduced()) scope.current?.play({}) } }, [b])
   return (
-    <div className="ld-stage sm" ref={ref}>
+    <div className="ld-stage sm sdk" ref={ref}>
       <Glitch />
       <div className="ld-card ld-code">
         <div className="ld-code-h"><span className="mono">analytics.ts</span><span className="ld-chip-soft">TypeScript</span></div>
@@ -420,8 +516,17 @@ function Sdk() {
           analytics.<span className="f">track</span>(<span className={'s' + (b >= 1 ? ' ld-sent' : '')}>'checkout_started'</span>)
         </pre>
         <div className="ld-listen">
-          <span className="ld-live" /><TextMorph>{b >= 1 ? 'checkout_started received' : 'Listening for change'}</TextMorph>
+          <span className={'ld-live' + (b >= 1 ? ' ok' : '')} /><TextMorph>{b >= 1 ? 'checkout_started received' : 'Listening for change'}</TextMorph>
         </div>
+      </div>
+      <div className="ld-tile-g">
+      <GlimmScope ref={scope} palette={SWEEP} direction="ltr" sweepMs={1000} curve={0.06} bandTight={30} pageEffect={false}>
+        <div className="ld-tile" data-filled={b >= 2}>
+          <p className="ld-cap">Events today</p>
+          <p className="ld-tile-n num"><TextMorph>{b >= 2 ? '1' : '0'}</TextMorph></p>
+          <div className="ld-tile-bars" aria-hidden>{[18, 30, 22, 40, 34, 56, 100].map((h, i) => <i key={i} style={{ height: h + '%', transitionDelay: i * 40 + 'ms' }} />)}</div>
+        </div>
+      </GlimmScope>
       </div>
     </div>
   )

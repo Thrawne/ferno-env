@@ -4,6 +4,19 @@ Updated on every **major UI overhaul** (a new or redesigned page) and every **qu
 
 Entry types: **New** (screen or feature), **Changed** (redesign or behaviour change), **Fixed** (quality fix).
 
+## 2026-11-25 — Landing page, design review
+
+### Changed
+- **Hero shot** now tells the story with cause and effect: a cursor picks the Sign-ups signal, its week draws in (Liveline), the question is asked, the answer card holds a skeleton while the label morphs through the fields Ferno checks (torph), and a glimm accent sweep crosses it as the answer fills in. The window is taller and runs off the ground, so there's no empty corner; on phones the thread scrolls to keep the answer's headline in view.
+- **01 The questions:** "What changed?" and "Is it real?" use Liveline mini charts (the second with its baseline), drawn in as the row comes into view.
+- **04 Connect the product:** an "Events today" tile straddles the code card and fills from empty under a glimm sweep once `checkout_started` arrives; the count morphs and the status dot turns green.
+- **Motion:** hover effects only on devices that hover; the phone menu opens in place and closes on Escape or when the window widens; FAQ answers open in 260ms with the text fading in after the row; a solid header when reduced transparency is on.
+- **Prototype:** "Go to landing page" in the account menu, and a "Back to the app" pill on the landing page.
+
+### Fixed
+- Placeholder rows in the hero's signal list showed on phones.
+- In section 03 the product card had the narrow column and the copy the wide one.
+
 ## 2026-11-25 — Landing page
 
 ### New

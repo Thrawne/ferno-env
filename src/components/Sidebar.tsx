@@ -130,6 +130,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <div className="menu-item" role="presentation" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
             <Moon size={16} />Dark mode<span style={{ marginLeft: 'auto' }} onClick={(e) => e.stopPropagation()}><Switch on={theme === 'dark'} onChange={(v) => setTheme(v ? 'dark' : 'light')} label="Dark mode" /></span>
           </div>
+          <button className="menu-item" onClick={() => { setUserOpen(false); go('landing') }}><Globe size={16} />Go to landing page</button>
           <div className="menu-sep" />
           <button className="menu-item" onClick={() => { setUserOpen(false); go('signin') }}><LogOut size={16} />Sign out</button>
         </Popover>
