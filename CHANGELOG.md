@@ -4,6 +4,11 @@ Updated on every **major UI overhaul** (a new or redesigned page) and every **qu
 
 Entry types: **New** (screen or feature), **Changed** (redesign or behaviour change), **Fixed** (quality fix).
 
+## 2026-11-25 — Landing page, quieter fills
+
+### Changed
+- **glimm removed from the landing page.** The hero's answer now fades up over its skeleton, and the "Events today" tile fills with its bars growing, without the accent sweep. (glimm still plays in the Data switch tip in the app.)
+
 ## 2026-11-25 — Landing page, design review
 
 ### Changed

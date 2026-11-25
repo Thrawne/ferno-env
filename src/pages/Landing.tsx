@@ -1,6 +1,4 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { GlimmScope, type GlimmScopeHandle } from 'glimm/react'
-import { accentPair } from 'glimm'
 import { TextMorph } from 'torph/react'
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check, ChevronDown, CircleDashed, Loader2, Menu, ShieldCheck, X } from 'lucide-react'
 import { FernoMark, useApp } from '../components/ui'
@@ -236,8 +234,8 @@ function Calls() {
  * One investigation in nine beats, played once when it comes into view:
  * the cursor picks the Sign-ups signal, its week draws in (Liveline), the
  * question is asked, the answer card holds a skeleton while Ferno checks the
- * fields (the label morphs through them with torph), then glimm sweeps the
- * accent glow across as the answer fills in, and the evidence follows. The
+ * fields (the label morphs through them with torph), then the answer fades
+ * in over the skeleton and the evidence follows. The
  * window is a fixed height that runs off the ground; the thread scrolls up as
  * the answer grows, like the real chat. Reduced motion: the last beat. */
 const SIGNALS = [
@@ -252,7 +250,6 @@ const EVIDENCE = [
 ]
 const WEEK = ['Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed']
 const SIGNUPS: LiveSeries[] = [{ key: 'su', label: 'Sign-ups', color: '#d97706', values: [418, 402, 396, 410, 421, 352, 336] }]
-const SWEEP = accentPair('#d97706', '#feceab')
 const CHECKS = ['Checking device…', 'Checking app_version…', 'Checking signup_source…']
 
 function HeroShot() {
@@ -261,13 +258,6 @@ function HeroShot() {
   const b = useBeats(seen, [900, 1250, 2500, 3200, 3800, 4400, 5000, 5700, 6100, 6500, 7100])
   const thinking = b >= 4 && b < 7
   const cap = b >= 7 ? 'Likely cause' : thinking ? CHECKS[b - 4] : 'Checking…'
-
-  // glimm: the accent band crosses the card the moment the answer replaces the skeleton
-  const scope = useRef<GlimmScopeHandle>(null)
-  const swept = useRef(false)
-  useEffect(() => {
-    if (b >= 7 && !swept.current) { swept.current = true; if (!reduced()) scope.current?.play({}) }
-  }, [b])
 
   // the cursor travels from the corner to the first signal, then presses it
   const win = useRef<HTMLDivElement>(null)
@@ -334,7 +324,6 @@ function HeroShot() {
               </div>
               <div className={'ld-ask' + (b >= 3 ? ' in' : '')}>Why did fewer people finish signing up this week?</div>
               <div className={'ld-cause-g' + (b >= 4 ? ' in' : '')}>
-              <GlimmScope ref={scope} palette={SWEEP} direction="ltr" sweepMs={1100} curve={0.06} bandTight={30} pageEffect={false}>
                 <div className="ld-cause" data-filled={b >= 7}>
                   <div className="ld-cause-h">
                     <span className="ld-cap accent">{thinking && <FernoMark size={13} animate />}<TextMorph>{cap}</TextMorph></span>
@@ -357,7 +346,6 @@ function HeroShot() {
                     </div>
                   </div>
                 </div>
-              </GlimmScope>
               </div>
             </div>
           </div>
@@ -495,13 +483,10 @@ function Handoff() {
 
 /* ───────── 04: the SDK, and the first event landing ─────────
  * The track call lights up, the status morphs (torph) to "received", and the
- * project's Overview tile goes from empty to filled under a glimm sweep. */
+ * project's Overview tile goes from empty to filled. */
 function Sdk() {
   const [ref, seen] = useSeen<HTMLDivElement>(0.4)
   const b = useBeats(seen, [1400, 2000])
-  const scope = useRef<GlimmScopeHandle>(null)
-  const swept = useRef(false)
-  useEffect(() => { if (b >= 2 && !swept.current) { swept.current = true; if (!reduced()) scope.current?.play({}) } }, [b])
   return (
     <div className="ld-stage sm sdk" ref={ref}>
       <Glitch />
@@ -520,13 +505,11 @@ function Sdk() {
         </div>
       </div>
       <div className="ld-tile-g">
-      <GlimmScope ref={scope} palette={SWEEP} direction="ltr" sweepMs={1000} curve={0.06} bandTight={30} pageEffect={false}>
         <div className="ld-tile" data-filled={b >= 2}>
           <p className="ld-cap">Events today</p>
           <p className="ld-tile-n num"><TextMorph>{b >= 2 ? '1' : '0'}</TextMorph></p>
           <div className="ld-tile-bars" aria-hidden>{[18, 30, 22, 40, 34, 56, 100].map((h, i) => <i key={i} style={{ height: h + '%', transitionDelay: i * 40 + 'ms' }} />)}</div>
         </div>
-      </GlimmScope>
       </div>
     </div>
   )

@@ -94,11 +94,12 @@
 .ld-ask, .ld-chart, .ld-cause-g, .ld-ev li, .ld-fix { opacity: 0; transform: translateY(6px); transition: opacity .4s var(--ld-ease), transform .5s var(--ld-ease); }
 .ld-ask.in, .ld-chart.in, .ld-cause-g.in, .ld-ev li.in, .ld-fix.in { opacity: 1; transform: none; }
 .ld-ask { justify-self: end; max-width: 420px; padding: 10px 14px; border-radius: 14px; background: var(--n-50); font-size: 15px; }
-.ld-cause-g > div { border-radius: 16px; }
 .ld-cause { border: 1px solid var(--n-100); border-radius: 16px; padding: 18px 20px; display: grid; gap: 12px; background: var(--surface); }
 .ld-cause[data-filled='false'] .ld-cause-body, .ld-cause[data-filled='false'] .ld-conf { display: none; }
 .ld-cause[data-filled='true'] .ld-skel { display: none; }
 .ld-cause-body { display: grid; gap: 12px; }
+.ld-cause[data-filled='true'] .ld-cause-body, .ld-cause[data-filled='true'] .ld-conf { animation: ld-fill .4s var(--ld-ease) both; }
+@keyframes ld-fill { from { opacity: 0; transform: translateY(4px); } }
 .ld-skel { display: grid; gap: 8px; padding: 2px 0 4px; }
 .ld-skel i { height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--n-50), var(--n-100), var(--n-50)); background-size: 200% 100%; animation: ld-shim 1.4s linear infinite; }
 .ld-skel i:nth-child(1) { width: 92%; height: 16px; }
@@ -332,7 +333,6 @@ html[data-theme='dark'] .ld-steps li[data-st='Checking now'] { background: color
 .ld-stage.sdk .ld-code { margin-bottom: 88px; }
 .ld-live.ok { background: var(--success); animation: none; }
 .ld-tile-g { position: absolute; right: 20px; bottom: 20px; width: 196px; border-radius: 16px; box-shadow: var(--ld-shadow); }
-.ld-tile-g > div { border-radius: 16px; }
 .ld-tile { background: var(--surface); border: 1px solid var(--n-100); border-radius: 16px; padding: 14px 16px 12px; display: grid; gap: 4px; }
 .ld-tile-n { margin: 0; font-family: var(--font-head); font-weight: 700; font-size: 28px; line-height: 34px; letter-spacing: -0.03em; }
 .ld-tile[data-filled='false'] .ld-tile-n { color: var(--n-300); }
