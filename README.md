@@ -16,9 +16,24 @@ An interactive prototype of the **Ferno** redesign: the screens from the Figma r
 | Chat | `#/chat` | Thinking state, expandable steps, streamed answer, a chart per answer |
 | Heatmaps | `#/heatmaps` | Page picker, heat layer, rage/dead-click markers, movement paths, desktop/mobile |
 | Analytics | `#/analytics` | Traffic vs previous period (Liveline), pages, sources, technology, region, weekly retention |
+| Events | `#/events`, `#/event/:name` | Every event with count, people, per-person, trend and change; merge look-alike names; per-event chart, breakdown and latest occurrences |
+| Chat history | `#/chats`, `#/chat/:id` | Every conversation, searchable; rename in place, delete with Undo; answers link to their report; share a chat |
+| Integrations | `#/integrations` | Tools and Sources tabs, connect sheet with permissions, install snippets, per-integration settings |
+| API Keys | `#/api-keys` | Masked keys, create (shown once, with copy), revoke with confirm |
+| Members | `#/members` | Roles in place, invite several at once, pending invites (resend, cancel), remove with Undo |
+| Settings | `#/settings` | Project, data (default timezone, retention, IP anonymising), theme, delete with typed confirm; a save bar for unsaved edits |
+| Set up tracking | `#/setup` | First run: name the project, install (script, Next.js, npm), watch the first events arrive |
+| All tips | `#/tips` | Every tour step and info tip side by side |
 | Reports | `#/reports`, `#/report/:id` | Investigation list with sort and status filter; report detail with findings, baseline-vs-current chart, next steps, uncertainties, expandable evidence trail, investigated lead and sample-size check; failed reports can be re-run |
 
-Members, API Keys, Integrations, Docs and Settings show a placeholder for now.
+Docs shows a placeholder for now.
+
+**Across the app:**
+- **Projects:** the workspace menu switches between four projects, and every number changes with it. *Lumen* is empty, to show the first-run path.
+- **⌘K / Ctrl+K:** jump to any page, project, report or chat, run an action, or ask Ferno.
+- **Notifications:** the bell lists new reports, failures, joins and integrations.
+- **Dark mode:** in the account menu, Settings and ⌘K.
+- **Share:** reports and chats get a link popover.
 
 **Prototype controls:** the floating **Data** switch (bottom right) flips every screen between *Filled*, *Loading* (the pixel squares fill in) and *Empty* (the Figma empty states). The date-range menu changes the data too. The sidebar's **Prototype** group opens **All tips** (every tip card on one page), replays the guided tour, and switches the small tooltips between the current style and the Figma tip style.
 

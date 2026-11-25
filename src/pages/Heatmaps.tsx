@@ -2,7 +2,7 @@ import { CardTitle } from '../components/Tip'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { TextMorph } from 'torph/react'
 import { CircleDashed, MousePointerClick, Move, Smartphone, Zap } from 'lucide-react'
-import { HEAT_PAGES, HEAT_TOTALS, RANGES, RANGE_LABEL, RANGE_SCALE } from '../data'
+import { HEAT_PAGES, HEAT_TOTALS, RANGES, RANGE_LABEL, RANGE_SCALE, pk } from '../data'
 import { EmptyState, PageHeader, PixelCorner, PixelLoader, Select, Seg, useApp } from '../components/ui'
 import { Tooltip, fmtFull } from '../charts/common'
 
@@ -171,7 +171,7 @@ export function Heatmaps() {
   const activePage = empty ? null : page
   const spots = activePage ? SPOTS[activePage] : []
   const base = HEAT_TOTALS[activePage ?? HEAT_PAGES[0]]
-  const sc = (n: number) => Math.round(n * RANGE_SCALE[range])
+  const sc = (n: number) => pk(n * RANGE_SCALE[range])
   const total = sc(base.total)
   const counts = { clicks: sc(base.clicks), rage: sc(base.rage), dead: sc(base.dead), move: sc(base.move) }
   const shown = useMemo(() => {

@@ -123,3 +123,11 @@ export const RECENT = [
   { title: 'Export funnel drop', sub: 'Found 2 causes · linked to a report', time: '5h ago', q: 'Show me the rage clicks on Export', thumb: 'rage' as const },
   { title: 'Pricing page spike', sub: 'Found 1 cause · linked to a report', time: 'Yesterday', q: 'What is driving the pricing page increase?', thumb: 'pricing' as const },
 ]
+
+/** The report an answer came from, so the chat can link straight to it. */
+const REPORT_FOR: [RegExp, string][] = [
+  [/sign-?ups? dip|nov 19|release/i, 'signup-dip'],
+  [/pricing/i, 'pricing-visits'],
+  [/rage|export/i, 'export-rage'],
+]
+export const reportFor = (q: string) => REPORT_FOR.find(([re]) => re.test(q))?.[1]

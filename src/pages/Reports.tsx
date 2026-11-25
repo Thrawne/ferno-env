@@ -1,16 +1,13 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { TextMorph } from 'torph/react'
-import { AlertCircle, ArrowDownUp, ArrowLeft, ChevronRight, Info, ListFilter, Loader2, MessageSquareText, Radar, RotateCcw, Share2, Check } from 'lucide-react'
+import { AlertCircle, ArrowDownUp, ArrowLeft, ChevronRight, Info, ListFilter, Loader2, MessageSquareText, Radar, RotateCcw, Check } from 'lucide-react'
 import { EmptyState, FernoMark, PageHeader, PixelCorner, Popover, useApp } from '../components/ui'
 import { LiveChart } from '../charts/LiveChart'
 import { MIN_USERS, pct, retry, useReports, type Report } from '../reports'
+import { SMALL_BASE, fmtChange } from '../data'
+import { ShareButton } from '../components/Share'
 
 /* ───────── shared bits ───────── */
-/** Big changes don't need a decimal: ↑1,033% reads faster than ↑1033.3%. */
-const fmtPct = (p: number) => {
-  const a = Math.abs(p)
-  return (a >= 100 ? Math.round(a).toLocaleString('en-US') : a.toFixed(1)) + '%'
-}
 const num = (n: number) => n.toLocaleString('en-US')
 const VERDICT: Record<Report['verdict'], { label: string; tone: string }> = {
   findings: { label: 'Findings ready', tone: 'good' },
@@ -55,7 +52,8 @@ function Change({ r, big }: { r: Report; big?: boolean }) {
   const good = up === higherIsBetter
   return (
     <span className={'rp-change ' + (good ? 'good' : 'bad') + (big ? ' big' : '')}>
-      {up ? '↑' : '↓'} <TextMorph numbers>{fmtPct(p)}</TextMorph>
+      {/* fmtChange: a count on tiny baselines, a multiple past 10×, else a percentage */}
+      {up ? '↑' : '↓'} <TextMorph numbers>{(r.from < SMALL_BASE ? (up ? '+' : '−') : '') + fmtChange(r.from, r.to)}</TextMorph>
     </span>
   )
 }
@@ -178,7 +176,6 @@ export function ReportDetail({ id }: { id: string }) {
   const found = useReports().find((x) => x.id === id)
   const r = mode === 'empty' ? undefined : found
   const [open, setOpen] = useState<Set<number>>(new Set())
-  const [copied, setCopied] = useState(false)
   if (!r) {
     return (
       <div className="page fade-page">
@@ -189,17 +186,13 @@ export function ReportDetail({ id }: { id: string }) {
       </div>
     )
   }
-  const share = () => {
-    try { navigator.clipboard?.writeText(location.href) } catch { /* clipboard blocked */ }
-    setCopied(true); setTimeout(() => setCopied(false), 1600)
-  }
   return (
     <div className="page fade-page">
       <div className="rp-crumbs">
         <button className="btn btn-ghost rp-back" onClick={() => go('reports')}><ArrowLeft size={14} />Reports</button>
         <div style={{ display: 'flex', gap: 8 }}>
           {r.question && <button className="btn" onClick={() => go('agent')}><MessageSquareText size={14} />Ask a follow-up</button>}
-          <button className="btn" onClick={share}><Share2 size={14} /><TextMorph>{copied ? 'Link copied' : 'Share'}</TextMorph></button>
+          <ShareButton what="report" path={`report/${r.id}`} />
         </div>
       </div>
 

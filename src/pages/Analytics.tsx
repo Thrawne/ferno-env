@@ -5,7 +5,7 @@ import { LiveChart } from '../charts/LiveChart'
 import { ShareBar } from '../charts/BarChart'
 import { BarList, Donut, RetentionGrid } from '../charts/Misc'
 import { fmtFull } from '../charts/common'
-import { type SourceRow, PAGES, RANGE_LABEL, REGION, SOURCES, TECH, analytics, labelsFor, rangeSpan, retention, rangeDelta } from '../data'
+import { type SourceRow, NO_TZ_SHARE, PAGES, RANGE_LABEL, REGION, SOURCES, TECH, analytics, labelsFor, pk, rangeSpan, retention, rangeDelta } from '../data'
 import { Banner, Body, Kpi, PageHeader, RangeSelect, Seg, useApp } from '../components/ui'
 
 const PALETTE = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)', 'var(--s5)', 'var(--s6)']
@@ -60,14 +60,14 @@ export function Analytics() {
           <div className="card">
             <div className="card-head"><CardTitle tip="pages">Pages</CardTitle><Seg value={pages} options={['Top', 'Entry', 'Exit']} onChange={setPages} /></div>
             <Body height={300} empty={empty}>
-              <BarList mono head={['Page', 'Visitors']} slots={6} rows={PAGES[pages].map(([p, v]) => ({ key: p, text: p, label: null, value: v }))} />
+              <BarList mono head={['Page', 'Visitors']} slots={6} rows={PAGES[pages].map(([p, v]) => ({ key: p, text: p, label: null, value: pk(v as number) }))} />
             </Body>
           </div>
           <div className="card">
             <div className="card-head"><CardTitle tip="sources">Sources</CardTitle><Seg value={src} options={['Sources', 'Campaigns']} onChange={setSrc} /></div>
             <Body height={300} empty={empty}>
               <BarList mono={src === 'Campaigns'} head={[src === 'Sources' ? 'Referrer' : 'Campaign', 'Visitors']} slots={6} rows={SOURCES[src].map((r) => ({
-                key: r.name, text: r.name, label: null, value: r.value, icon: <SourceLogo row={r} />, iconKey: r.logo ?? r.icon,
+                key: r.name, text: r.name, label: null, value: pk(r.value), icon: <SourceLogo row={r} />, iconKey: r.logo ?? r.icon,
               }))} />
             </Body>
           </div>
@@ -91,8 +91,11 @@ export function Analytics() {
             <div className="card-head"><CardTitle tip="region">Region</CardTitle><Seg value={region} options={['Timezones', 'Languages']} onChange={setRegion} /></div>
             <Body height={300} empty={empty}>
               <BarList head={[region === 'Timezones' ? 'Timezone' : 'Language', 'Visitors']} slots={6} rows={REGION[region].map(([f, l, v]) => ({
-                key: l, text: l, label: null, value: v, iconKey: f, icon: <span aria-hidden style={{ fontSize: 14 }}>{f}</span>,
+                key: l, text: l, label: null, value: pk(v), iconKey: f, icon: <span aria-hidden style={{ fontSize: 14 }}>{f}</span>,
               }))} />
+              {region === 'Timezones' && (
+                <p className="card-foot">{NO_TZ_SHARE}% of visitors sent no timezone. They're counted under the project's default, set in <a href="#/settings">Settings</a>.</p>
+              )}
             </Body>
           </div>
         </div>

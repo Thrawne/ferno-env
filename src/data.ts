@@ -17,6 +17,25 @@ function rng(seed: number) {
   }
 }
 
+/* ───────── Projects ─────────
+ * Each project scales and reseeds the same mock data, so switching projects
+ * changes every number (and the charts morph to it). An empty project has no
+ * events yet: the app shows its empty states and the setup flow. */
+export type Project = { id: string; name: string; domain: string; k: number; seed: number; empty?: boolean }
+export const PROJECTS: Project[] = [
+  { id: 'tokencraft', name: 'Tokencraft', domain: 'tokencrafter.vercel.app', k: 1, seed: 0 },
+  { id: 'ferno-web', name: 'Ferno web', domain: 'useferno.com', k: 0.42, seed: 31 },
+  { id: 'northwind', name: 'Northwind Docs', domain: 'docs.northwind.dev', k: 2.3, seed: 57 },
+  { id: 'lumen', name: 'Lumen', domain: 'lumen.app', k: 0, seed: 0, empty: true },
+]
+let project: Project = PROJECTS[0]
+/** Set by App before each render; the data functions below read it. */
+export function setDataProject(p: Project) { project = p }
+/** Scale a fixed 7-day figure to the current project's size. */
+export const pk = (n: number) => Math.round(n * project.k)
+/** Share of visitors whose browser sent no timezone. They're counted under the project's default instead of a 100% "Unknown" row. */
+export const NO_TZ_SHARE = 8
+
 const DAY = 86400000
 const TODAY = new Date('2026-11-24T14:00:00')
 const fmtDay = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -41,7 +60,7 @@ export function rangeSpan(range: Range) {
 
 /** Smooth-ish series with weekly rhythm, a trend and noise. */
 function series(range: Range, seed: number, base: number, trend = 0.25, spike?: number) {
-  const r = rng(seed + range.length * 97 + points(range))
+  const r = rng(seed + project.seed + range.length * 97 + points(range))
   const n = points(range)
   return Array.from({ length: n }, (_, i) => {
     const t = i / Math.max(1, n - 1)
@@ -50,7 +69,7 @@ function series(range: Range, seed: number, base: number, trend = 0.25, spike?: 
       : 1 - 0.28 * (([0, 6].includes((i + 3) % 7)) ? 1 : 0)
     const noise = 0.85 + r() * 0.3
     const sp = spike !== undefined && i === Math.round((n - 1) * spike) ? 1.7 : 1
-    return Math.max(0, Math.round(base * (1 + trend * t) * weekly * noise * sp))
+    return Math.max(0, Math.round(base * project.k * (1 + trend * t) * weekly * noise * sp))
   })
 }
 
@@ -96,7 +115,7 @@ export const DEFAULT_FUNNEL = ['/ (Landing)', '/pricing', 'signup_started', '/ch
 export const CONVERSION: Record<Range, number> = { '24h': 16.4, '7d': 18.2, '30d': 17.6, '90d': 19.1 }
 
 export function funnelCounts(steps: string[], range: Range) {
-  const top = Math.round(12847 * ({ '24h': 0.06, '7d': 1, '30d': 3.9, '90d': 11.2 }[range]))
+  const top = Math.round(12847 * project.k * ({ '24h': 0.06, '7d': 1, '30d': 3.9, '90d': 11.2 }[range]))
   const k = CONVERSION[range] / 18.2
   const drops = [1, 0.641 * Math.sqrt(k), 0.381 * k, 0.182 * k, 0.12 * k]
   return steps.map((s, i) => ({ step: s, value: Math.round(top * drops[i]) }))
@@ -196,6 +215,22 @@ export const HEAT_PAGES = ['tokencrafter.vercel.app', 'tokencrafter.vercel.app/p
 /** Period-over-period change for a KPI, varied per range so switching ranges visibly moves it. */
 export function rangeDelta(base: number, range: Range) {
   const k = { '24h': 0.45, '7d': 1, '30d': 0.72, '90d': 1.35 }[range]
-  const v = base * k + (range === '24h' ? -1.3 : range === '90d' ? 0.8 : 0)
+  // other projects shift it a little, so switching project moves the pills too
+  const v = base * k + (range === '24h' ? -1.3 : range === '90d' ? 0.8 : 0) + (project.seed ? ((project.seed % 7) - 3) * 0.9 : 0)
   return Math.round(v * 10) / 10
+}
+
+/**
+ * How big a change is, as text (no arrow; callers add one).
+ *  - Under 10 at the start: the count difference ("+9"), since 1 → 10 as
+ *    "+900%" says more about the baseline than the change.
+ *  - 10× and up: a multiple ("11.3×"), not "1,033%".
+ *  - Otherwise a percentage, with a decimal only under 100%.
+ */
+export const SMALL_BASE = 10
+export function fmtChange(from: number, to: number): string {
+  if (from < SMALL_BASE) return `${Math.abs(to - from).toLocaleString('en-US')}`
+  const p = Math.abs(((to - from) / from) * 100)
+  if (to / from >= 10) return `${(to / from).toFixed(1)}×`
+  return (p >= 100 ? Math.round(p).toLocaleString('en-US') : p.toFixed(1)) + '%'
 }

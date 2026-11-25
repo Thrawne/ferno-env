@@ -1,26 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Menu } from 'lucide-react'
-import { Sidebar, WsTile } from './components/Sidebar'
-import { AppCtx, EmptyState, PageHeader, PixelCorner, Seg, type Mode, type TipStyle } from './components/ui'
+import { Menu, Search } from 'lucide-react'
+import { ProjectTile, Sidebar } from './components/Sidebar'
+import { AppCtx, EmptyState, PageHeader, PixelCorner, Seg, type Mode, type Theme, type TipStyle } from './components/ui'
 import { TipGallery, Tour } from './components/Tip'
-import type { Range } from './data'
+import { Toaster } from './components/overlay'
+import { CommandPalette } from './components/Command'
+import { Notifications } from './components/Notifications'
+import { PROJECTS, setDataProject, type Project, type Range } from './data'
+import { ask as askIn, newThread } from './chats'
+import { Integrations } from './pages/Integrations'
+import { ApiKeys } from './pages/ApiKeys'
+import { Members } from './pages/Members'
+import { Settings } from './pages/Settings'
+import { Setup } from './pages/Setup'
+import { EventDetail, Events } from './pages/Events'
 import { Overview } from './pages/Overview'
 import { Analytics } from './pages/Analytics'
 import { Heatmaps } from './pages/Heatmaps'
-import { AgentHome, Chat, type Msg } from './pages/Agent'
+import { AgentHome, Chat, ChatHistory } from './pages/Agent'
 import { SignIn } from './pages/SignIn'
 import { ReportDetail, Reports } from './pages/Reports'
 
 const TITLES: Record<string, [string, string]> = {
-  members: ['Members', 'Who can see this workspace and what they can change.'],
-  'api-keys': ['API Keys', 'Keys your apps use to send events to Ferno.'],
-  integrations: ['Integrations', 'Connect the tools and sources Ferno reads from.'],
   docs: ['Docs', 'Guides for instrumenting your product.'],
-  settings: ['Settings', 'Workspace and account preferences.'],
 }
 
 const readRoute = () => location.hash.replace(/^#\/?/, '') || 'overview'
-const now = () => new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 
 export default function App() {
   const [route, setRoute] = useState(readRoute)
@@ -30,7 +35,24 @@ export default function App() {
   // a date-range change refreshes the charts only; KPI numbers morph in place
   const [refreshing, setRefreshing] = useState(false)
   const refreshTimer = useRef<number>(0)
-  const [msgs, setMsgs] = useState<Msg[]>([])
+  // projects: switching one changes every number (charts reload and morph); an empty one has no events yet
+  const [projects, setProjects] = useState<Project[]>(PROJECTS)
+  const [projectId, setProjectId] = useState(() => { try { return localStorage.getItem('ferno:project') ?? 'tokencraft' } catch { return 'tokencraft' } })
+  const project = projects.find((p) => p.id === projectId) ?? projects[0]
+  setDataProject(project) // the data functions read it during this render
+
+  // theme: per device
+  const [theme, setThemeState] = useState<Theme>(() => { try { return localStorage.getItem('ferno:theme') === 'dark' ? 'dark' : 'light' } catch { return 'light' } })
+  const setTheme = useCallback((t: Theme) => { setThemeState(t); try { localStorage.setItem('ferno:theme', t) } catch { /* */ } }, [])
+  useEffect(() => { document.documentElement.dataset.theme = theme; document.documentElement.style.colorScheme = theme }, [theme])
+
+  // ⌘K / Ctrl+K: the command palette
+  const [palette, setPalette] = useState(false)
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((o) => !o) } }
+    window.addEventListener('keydown', k)
+    return () => window.removeEventListener('keydown', k)
+  }, [])
   const [navOpen, setNavOpen] = useState(false)
   const [collapsed, setCollapsedState] = useState(() => { try { return localStorage.getItem('ferno:sidebar') === 'collapsed' } catch { return false } })
   const setCollapsed = useCallback((c: boolean) => {
@@ -83,22 +105,46 @@ export default function App() {
 
   const setRange = (r: Range) => {
     setRangeState(r)
-    setRefreshing(true)
-    clearTimeout(refreshTimer.current)
-    refreshTimer.current = window.setTimeout(() => setRefreshing(false), 700)
+    refresh()
   }
   const setMode = (m: Mode) => {
     if (m === 'loading') { setModeState('filled'); flash(2400); return }
     setModeState(m); setLoading(false)
   }
 
+  /** A question goes to the open chat, or starts a new one. */
   const ask = (q: string) => {
-    setMsgs((m) => [...m, { id: Date.now(), q, time: now() }])
-    go('chat')
+    if (route.startsWith('chat/')) askIn(route.slice(5), q)
+    else go('chat/' + newThread(q))
+  }
+
+  const refresh = () => {
+    setRefreshing(true)
+    clearTimeout(refreshTimer.current)
+    refreshTimer.current = window.setTimeout(() => setRefreshing(false), 700)
+  }
+  const setProject = useCallback((id: string) => {
+    setProjectId(id)
+    try { localStorage.setItem('ferno:project', id) } catch { /* */ }
+    refresh()
+  }, []) // eslint-disable-line
+  const updateProject = useCallback((p: Project) => { setProjects((ps) => ps.map((x) => (x.id === p.id ? p : x))); refresh() }, []) // eslint-disable-line
+  const newProject = useCallback(() => {
+    const p: Project = { id: 'p-' + Date.now().toString(36), name: 'Untitled', domain: '', k: 0, seed: 0, empty: true }
+    setProjects((ps) => [...ps, p])
+    setProjectId(p.id)
+    go('setup')
+  }, [go])
+
+  // an empty project has nothing to show, whatever the Data switch says
+  const effMode: Mode = project.empty ? 'empty' : mode
+  const ctx = {
+    route, go, range, setRange, mode: effMode, setMode, loading, refreshing, collapsed, setCollapsed, tipStyle, setTipStyle, startTour,
+    projects, project, setProject, updateProject, theme, setTheme, openPalette: () => setPalette(true), newProject,
   }
 
   if (route === 'signin') {
-    return <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, refreshing, collapsed, setCollapsed, tipStyle, setTipStyle, startTour }}><SignIn /></AppCtx.Provider>
+    return <AppCtx.Provider value={ctx}><SignIn /></AppCtx.Provider>
   }
 
   let page
@@ -107,9 +153,17 @@ export default function App() {
   else if (route === 'heatmaps') page = <Heatmaps />
   else if (route === 'reports') page = <Reports />
   else if (route.startsWith('report/')) page = <ReportDetail id={route.slice(7)} />
-  else if (route === 'agent') page = <AgentHome onAsk={ask} />
+  else if (route === 'agent' || route === 'chat') page = <AgentHome onAsk={ask} />
+  else if (route.startsWith('chat/')) page = <Chat id={route.slice(5)} onAsk={ask} />
+  else if (route === 'chats') page = <ChatHistory />
+  else if (route === 'events') page = <Events />
+  else if (route.startsWith('event/')) page = <EventDetail name={decodeURIComponent(route.slice(6))} />
+  else if (route === 'integrations') page = <Integrations />
+  else if (route === 'api-keys') page = <ApiKeys />
+  else if (route === 'members') page = <Members />
+  else if (route === 'settings') page = <Settings key={project.id} />
+  else if (route === 'setup') page = <Setup key={project.id} />
   else if (route === 'tips') page = <div className="page fade-page"><PageHeader title="Tips" sub="Every tour step and info tip in one place." /><TipGallery /></div>
-  else if (route === 'chat') page = msgs.length ? <Chat msgs={msgs} onAsk={ask} /> : <AgentHome onAsk={ask} />
   else {
     const [t, s] = TITLES[route] ?? ['Not found', '']
     page = (
@@ -124,13 +178,17 @@ export default function App() {
   }
 
   return (
-    <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, refreshing, collapsed, setCollapsed, tipStyle, setTipStyle, startTour }}>
+    <AppCtx.Provider value={ctx}>
       <div className={'shell' + (navOpen ? ' nav-open' : '') + (collapsed ? ' collapsed' : '')}>
         <header className="topbar">
           <button className="btn icon-btn btn-ghost" aria-label="Open menu" onClick={() => setNavOpen(true)}><Menu size={18} /></button>
-          <WsTile size={24} />
+          <ProjectTile id={project.id} size={24} />
           <span style={{ fontWeight: 500 }}>Ennead</span>
-          <span style={{ color: 'var(--muted)', fontSize: 12 }}>Tokencraft</span>
+          <span style={{ color: 'var(--muted)', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{project.name}</span>
+          <span style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>
+            <button className="btn icon-btn btn-ghost" aria-label="Search" onClick={() => setPalette(true)}><Search size={17} /></button>
+            <Notifications compact />
+          </span>
         </header>
         <Sidebar onNavigate={() => setNavOpen(false)} />
         <div className="scrim" onClick={() => setNavOpen(false)} />
@@ -143,6 +201,8 @@ export default function App() {
           onChange={(v) => setMode(v.toLowerCase() as Mode)} />
       </div>
       {tour > 0 && route !== 'signin' && <Tour key={tour} onClose={endTour} />}
+      <CommandPalette open={palette} onClose={() => setPalette(false)} onAsk={(q) => go('chat/' + newThread(q))} onNewProject={newProject} />
+      <Toaster />
     </AppCtx.Provider>
   )
 }

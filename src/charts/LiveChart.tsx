@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { AppCtx } from '../components/ui'
 import { Liveline, type LivelinePoint } from 'liveline'
 import { fmtFull } from './common'
 
@@ -64,6 +65,7 @@ export function LiveChart({ series, labels, height = 280, loading, format = fmtF
   /** illustration size: no grid, axis labels, badge or scrubbing */
   mini?: boolean
 }) {
+  const theme = useContext(AppCtx)?.theme ?? 'light'
   const anchor = useRef(Math.floor(Date.now() / 1000)).current
   const shown = useMorph(series)
   const n = labels.length
@@ -82,7 +84,7 @@ export function LiveChart({ series, labels, height = 280, loading, format = fmtF
     // multi-series adds Liveline's toggle chips above the canvas
     <div style={{ height: height + (multi.length > 1 ? 34 : 0), display: 'flex', flexDirection: 'column' }} className="live-chart">
       <Liveline
-        theme="light"
+        theme={theme}
         data={first.data}
         value={first.value}
         series={multi.length > 1 ? multi : undefined}

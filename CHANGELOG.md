@@ -4,6 +4,30 @@ Updated on every **major UI overhaul** (a new or redesigned page) and every **qu
 
 Entry types: **New** (screen or feature), **Changed** (redesign or behaviour change), **Fixed** (quality fix).
 
+## 2026-11-25 — The rest of the app
+
+### New
+- **Integrations**, **API Keys**, **Members** and **Settings** replace their placeholders.
+  - **Integrations:** Tools and Sources tabs; a connect sheet that lists what Ferno may do; install snippets; settings per integration. Connections persist while you move around.
+  - **API Keys:** the full key shows once, at creation, with a copy button. Revoking asks first.
+  - **Members:** change roles in place; invite several people at once; resend or cancel invites; remove with Undo.
+  - **Settings:** project, data and theme, with a save bar for unsaved edits. Deleting a project means typing its name.
+- **Set up tracking** (`#/setup`): name the project, install (script, Next.js or npm), then watch test events arrive before going to Overview. Empty projects get a banner pointing here, and New project starts here.
+- **Events** (`#/events`, in the sidebar): every event with count, people, per-person rate, trend and change, plus search and a filter. Look-alike names (`login_success`, "Successfully Logged IN", "Login Success") are grouped and can be merged, with Undo. Each event has a detail page with a chart, a breakdown by path, browser or country, and the latest occurrences.
+- **Projects:** the workspace menu switches between four projects (one empty), and every number, chart and pill changes with it.
+- **Chat history** (`#/chats`): chats have their own URLs, can be searched, renamed in place and deleted with Undo. Agent's Recent and "View all" use them. Answers link to the report they came from.
+- **⌘K command palette**: pages, actions, projects, reports, chats, and "Ask Ferno" for anything else.
+- **Notifications** bell, in the sidebar and the phone top bar.
+- **Dark mode**, from the account menu, Settings or ⌘K. Liveline follows it.
+- **Share** popover on reports and chats: workspace-only or public link, plus copy.
+- Shared pieces: Dialog and Sheet (focus trap, Escape, quick exit), toasts with Undo, Switch, Field, CopyButton.
+
+### Fixed (issues seen in the live app)
+- **Runaway percentages:** a change from under 10 shows as a count ("↑+62"); 10× and up shows as a multiple ("11.3×"). This applies to Reports and Events.
+- **"Unknown" timezone:** Region notes the share of visitors with no timezone, and Settings has a default timezone for them.
+- **Inconsistent event names:** surfaced and mergeable in Events.
+- **Raw error text on failed reports:** already a plain message here, and the notifications link to it.
+
 ## 2026-11-25 — Tips, guided tour and tooltip styles
 
 ### New

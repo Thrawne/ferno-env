@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, ChevronsUpDown, CircleHelp } from 'lucide-react'
-import { RANGES, RANGE_LABEL, type Range } from '../data'
+import { RANGES, RANGE_LABEL, type Project, type Range } from '../data'
 import { Sparkline } from '../charts/AreaChart'
 import { TextMorph } from 'torph/react'
 
@@ -18,7 +18,16 @@ type Ctx = {
   /** prototype: small tooltips in the current style or the Figma tip style */
   tipStyle: TipStyle; setTipStyle: (t: TipStyle) => void
   startTour: () => void
+  projects: Project[]; project: Project
+  setProject: (id: string) => void
+  /** replace a project's details (rename, or going live after setup) */
+  updateProject: (p: Project) => void
+  theme: Theme; setTheme: (t: Theme) => void
+  openPalette: () => void
+  /** add an empty project and open its setup */
+  newProject: () => void
 }
+export type Theme = 'light' | 'dark'
 export type TipStyle = 'classic' | 'figma'
 export const AppCtx = createContext<Ctx>(null!)
 export const useApp = () => useContext(AppCtx)
@@ -296,7 +305,16 @@ export function Kpi({ icon, label, value, format, delta, foot, spark, sparkColor
 }
 
 export function Banner() {
-  const { mode, range } = useApp()
+  const { mode, range, project, go } = useApp()
+  if (project.empty) {
+    return (
+      <div className="group-banner">
+        <CircleHelp size={16} />
+        <b>No events in {project.name} yet.</b> Install the script and data shows up within a minute.
+        <button className="btn btn-dark" style={{ marginLeft: 'auto' }} onClick={() => go('setup')}>Set up tracking</button>
+      </div>
+    )
+  }
   if (mode !== 'empty') return null
   return (
     <div className="group-banner">
