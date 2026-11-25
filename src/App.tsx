@@ -19,6 +19,7 @@ import { Analytics } from './pages/Analytics'
 import { Heatmaps } from './pages/Heatmaps'
 import { AgentHome, Chat, ChatHistory } from './pages/Agent'
 import { SignIn } from './pages/SignIn'
+import { Landing } from './pages/Landing'
 import { ReportDetail, Reports } from './pages/Reports'
 
 const TITLES: Record<string, [string, string]> = {
@@ -79,7 +80,7 @@ export default function App() {
   useEffect(() => {
     let seen = true
     try { seen = localStorage.getItem('ferno:tour') === 'done' } catch { /* */ }
-    if (seen || readRoute() === 'signin') return
+    if (seen || readRoute() === 'signin' || readRoute() === 'landing') return
     const t = setTimeout(() => setTour(1), 900)
     return () => clearTimeout(t)
   }, [])
@@ -145,6 +146,9 @@ export default function App() {
 
   if (route === 'signin') {
     return <AppCtx.Provider value={ctx}><SignIn /></AppCtx.Provider>
+  }
+  if (route === 'landing') {
+    return <AppCtx.Provider value={ctx}><Landing /><Toaster /></AppCtx.Provider>
   }
 
   let page

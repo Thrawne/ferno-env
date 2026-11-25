@@ -10,6 +10,7 @@ An interactive prototype of the **Ferno** redesign: the screens from the Figma r
 
 | Screen | Route | Highlights |
 |---|---|---|
+| Landing page | `#/landing` | useferno.com's copy, redesigned: hero product shot that finds a cause, the four questions, an investigation ticking through its checks, an approvable next move, the SDK with an event arriving, FAQ |
 | Sign in | `#/signin` | Split layout, pixel field, floating insight cards |
 | Overview | `#/overview` | KPI tiles with sparklines, Active Users (Liveline), Event Activity stacked bars, flowing conversion funnel with a working funnel builder, rotating "Ferno noticed" insights |
 | Ferno Agent | `#/agent` | Composer with menus, suggestion sets, Recent threads with animated thumbnails |

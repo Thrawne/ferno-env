@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  BookOpen, ChartLine, Compass, FileText, FolderOpen, History, KeyRound, LayoutDashboard, Lightbulb, Moon, MousePointerClick,
+  BookOpen, ChartLine, Compass, FileText, FolderOpen, Globe, History, KeyRound, LayoutDashboard, Lightbulb, Moon, MousePointerClick,
   Plus, Puzzle, Rocket, Search, Settings, Sun, UserPlus, Users, Zap,
 } from 'lucide-react'
 import { FernoMark, useApp } from './ui'
@@ -48,6 +48,7 @@ export function CommandPalette({ open, onClose, onAsk, onNewProject }: { open: b
       nav('settings', 'Settings', <Settings size={16} />, 'timezone retention preferences'),
       nav('docs', 'Docs', <BookOpen size={16} />, 'guides help'),
       nav('tips', 'All tips', <Lightbulb size={16} />, 'tooltips help'),
+      nav('landing', 'Landing page', <Globe size={16} />, 'marketing home website'),
       { id: 'a-chat', group: 'Actions', label: 'New chat', icon: <Plus size={16} />, keys: 'ask question', run: () => go('agent') },
       { id: 'a-invite', group: 'Actions', label: 'Invite a teammate', icon: <UserPlus size={16} />, keys: 'members add', run: () => go('members') },
       { id: 'a-key', group: 'Actions', label: 'Create an API key', icon: <KeyRound size={16} />, run: () => go('api-keys') },

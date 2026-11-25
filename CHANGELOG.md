@@ -4,6 +4,18 @@ Updated on every **major UI overhaul** (a new or redesigned page) and every **qu
 
 Entry types: **New** (screen or feature), **Changed** (redesign or behaviour change), **Fixed** (quality fix).
 
+## 2026-11-25 — Landing page
+
+### New
+- **Landing page** (`#/landing`, under Prototype in the sidebar and in ⌘K). The copy is useferno.com's, word for word; the design is the app's: Manrope headlines, the amber ground with the white glitch squares, white cards with the soft lifting shadow.
+  - **Hero:** a product shot that plays once when it comes into view: the Sign-ups signal is picked, the question is asked, and the likely cause arrives with its three pieces of evidence and the suggested fix.
+  - **01 The questions:** What changed, Who felt it, Is it real and What happens next, each with a small picture that draws in.
+  - **02 One investigation:** the four checks tick through (Done, Done, Checking now, Up next) and the findings arrive under the question.
+  - **03 The handoff:** the recommended next move with its open question; the Approve button works.
+  - **04 Connect the product:** the SDK snippet, and `checkout_started` arriving.
+  - **05 Questions:** an accordion of the five answers. Then a closing call to action and the footer.
+  - Section links scroll in place; Get started and Sign in open the sign-in screen. Reduced motion shows every shot finished.
+
 ## 2026-11-25 — Sidebar and composer polish
 
 ### Changed
