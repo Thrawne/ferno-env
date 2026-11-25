@@ -327,7 +327,12 @@ a { color: inherit; text-decoration: none; }
 }
 .send-btn.ready { background: var(--accent-500); color: #fff; }
 .send-btn:active { transform: scale(.92); }
+.composer-hint-wrap { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .24s var(--ease-out), opacity .16s; }
+.composer-hint-wrap[data-open='false'] { grid-template-rows: 0fr; opacity: 0; }
+.composer-hint-wrap > .composer-hint { overflow: hidden; min-height: 0; }
 .composer-hint { font-size: 12px; color: var(--muted); padding: 10px 16px 12px; }
+.composer-hint-wrap[data-open='false'] > .composer-hint { padding-block: 0; transition: padding .24s var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { .composer-hint-wrap { transition: none; } }
 .suggestion {
   display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface);
   transition: background-color .15s, border-color .15s, transform .12s var(--ease-out);

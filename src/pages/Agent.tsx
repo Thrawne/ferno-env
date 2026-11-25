@@ -13,6 +13,7 @@ import { RANGES, RANGE_LABEL, type Range } from '../data'
 import { SUGGESTION_SETS, answerFor, reportFor, type ChartSpec } from './answers'
 
 /* ───────── Composer ───────── */
+const HINT_KEY = 'ferno:composer-hint-seen'
 export function Composer({ onSend, autoFocus }: { onSend: (q: string) => void; autoFocus?: boolean }) {
   const [v, setV] = useState('')
   const [range, setRange] = useState<Range>('7d')
@@ -22,7 +23,13 @@ export function Composer({ onSend, autoFocus }: { onSend: (q: string) => void; a
   const addRef = useRef<HTMLDivElement>(null)
   const rangeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
-  const send = () => { if (v.trim()) { onSend(v.trim()); setV('') } }
+  // the Enter / Shift+Enter hint is for first-timers: it folds away after the first send, for good
+  const [hint, setHint] = useState(() => { try { return localStorage.getItem(HINT_KEY) !== '1' } catch { return true } })
+  const send = () => {
+    if (!v.trim()) return
+    onSend(v.trim()); setV('')
+    if (hint) { setHint(false); try { localStorage.setItem(HINT_KEY, '1') } catch { /* private mode: hide for this visit */ } }
+  }
   return (
     <div className="composer">
       <div className="composer-box" data-tour="composer">
@@ -53,7 +60,9 @@ export function Composer({ onSend, autoFocus }: { onSend: (q: string) => void; a
           <button className={'send-btn' + (v.trim() ? ' ready' : '')} aria-label="Send" onClick={send}><ArrowUp size={16} /></button>
         </div>
       </div>
-      <div className="composer-hint">Press Enter to send and Shift + Enter for a new line</div>
+      <div className="composer-hint-wrap" data-open={hint} aria-hidden={!hint}>
+        <div className="composer-hint">Press Enter to send and Shift + Enter for a new line</div>
+      </div>
     </div>
   )
 }

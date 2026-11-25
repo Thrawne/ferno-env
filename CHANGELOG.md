@@ -4,6 +4,15 @@ Updated on every **major UI overhaul** (a new or redesigned page) and every **qu
 
 Entry types: **New** (screen or feature), **Changed** (redesign or behaviour change), **Fixed** (quality fix).
 
+## 2026-11-25 — Sidebar and composer polish
+
+### Changed
+- **Sidebar search:** white fill, with ⌘K as plain text instead of a key outline. The bell matches.
+- **Agent composer:** the "Press Enter to send" hint folds away after your first message and stays hidden after that.
+
+### Fixed
+- The ⌘K hint no longer stretches across the search box.
+
 ## 2026-11-25 — The rest of the app
 
 ### New
