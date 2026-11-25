@@ -220,7 +220,8 @@ textarea.input { height: auto; padding: 8px 12px; resize: vertical; line-height:
   background: transparent; box-shadow: inset 0 0 0 1px #e2ddd1; color: var(--n-600); text-align: left;
 }
 .sb-search:hover { background: #ebe7dd; }
-.sb-search .nav-label:first-of-type { flex: 1; }
+.sb-search > span.nav-label { flex: 1; }
+.sb-search kbd { flex: none; }
 kbd, .sb-search kbd { font: 11px var(--font-mono); padding: 1px 5px; border-radius: 4px; background: var(--surface); box-shadow: var(--shadow-btn); color: var(--n-600); }
 .bell { position: relative; width: 32px; height: 32px; flex: none; display: grid; place-items: center; border: 0; border-radius: var(--radius-sm); background: transparent; box-shadow: inset 0 0 0 1px #e2ddd1; color: var(--n-600); }
 .bell:hover { background: #ebe7dd; color: var(--fg); }
