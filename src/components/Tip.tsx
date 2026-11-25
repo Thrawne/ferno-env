@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowRight, Info } from 'lucide-react'
+import { ArrowRight, Info, X } from 'lucide-react'
 import { TipArt, type ArtKind, type ListSet } from './TipArt'
 import { useApp } from './ui'
 import './tips.css'
@@ -38,10 +38,12 @@ const STEPS: Step[] = [
 ]
 
 /* ───────── The card (Figma 230:35347) ───────── */
-export function TipCard({ tip, size, footer, id }: { tip: TipDef; size: 'tour' | 'hover'; footer?: ReactNode; id?: string }) {
+export function TipCard({ tip, size, footer, id, onClose }: { tip: TipDef; size: 'tour' | 'hover'; footer?: ReactNode; id?: string; onClose?: () => void }) {
   return (
     <div className={'tip-card tip-' + size} role={size === 'tour' ? 'dialog' : 'tooltip'} id={id} aria-label={size === 'tour' ? tip.title : undefined}>
-      <div className="tip-head">
+      <div className={'tip-head' + (onClose ? ' has-close' : '')}>
+        {/* returning users can leave the tour from any step */}
+        {onClose && <button className="tip-close" aria-label="Close tour" onClick={onClose}><X size={16} /></button>}
         <p className="tip-title">{tip.title}</p>
         <p className="tip-sub">{tip.sub}</p>
       </div>
@@ -210,7 +212,7 @@ export function Tour({ onClose }: { onClose: () => void }) {
     <div className="tour">
       <div className={'tour-spot' + (rect ? ' on' : '')} style={rect ? { top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 } : undefined} />
       <div ref={card} className={'tour-card' + (pos ? ' in' : '')} style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999 }}>
-        <TipCard key={i} size="tour" tip={step} footer={
+        <TipCard key={i} size="tour" tip={step} onClose={onClose} footer={
           <>
             <span className="tip-count num">{i + 1} / {STEPS.length}</span>
             <button className="tip-prev" onClick={prevStep}>{i === 0 ? 'Skip' : 'Previous'}</button>

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { BookOpen, ChartLine, ChevronDown, ChevronsUpDown, Compass, FileText, KeyRound, LayoutDashboard, LogOut, MessageSquare, MousePointerClick, Plus, Puzzle, Settings, Users, Check } from 'lucide-react'
+import { BookOpen, ChartLine, ChevronDown, ChevronsUpDown, Compass, Lightbulb, FileText, KeyRound, LayoutDashboard, LogOut, MessageSquare, MousePointerClick, Plus, Puzzle, Settings, Users, Check } from 'lucide-react'
 import { TextMorph } from 'torph/react'
 import type { ReactNode } from 'react'
 import { FernoMark, Popover, useApp } from './ui'
@@ -53,6 +53,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { go: rawGo, route, tipStyle, setTipStyle, startTour } = useApp()
   // prototype-only controls, kept apart from the product's own navigation
   const PROTO: Item[] = [
+    { id: 'tips', label: 'All tips', icon: <Lightbulb size={16} /> },
     { id: 'proto-tour', label: 'Take the tour', icon: <Compass size={16} />, onClick: () => { startTour(); onNavigate?.() } },
     {
       id: 'proto-tips', label: 'Tooltip style', icon: <MessageSquare size={16} />, onClick: () => setTipStyle(tipStyle === 'figma' ? 'classic' : 'figma'),

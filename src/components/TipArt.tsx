@@ -10,9 +10,10 @@ import { LiveChart } from '../charts/LiveChart'
  * Tip illustrations (Figma: Ferno · Tooltip, 230:35347): a close-up.
  *
  * Each one is a crop of the screen the tip points at, drawn about 1.2× true
- * size on the page's own grey ground: one white card, its top-left corner in
- * view so it reads as part of the app, running off the bottom (and right,
- * where the right edge isn't the point). No stacked or tilted cards.
+ * size: one white card on Ferno's amber ground with the white glitch squares
+ * (Figma 241:35539), lifted by the frame's soft shadow, its top-left corner in
+ * view, running off the bottom (and right, where the right edge isn't the
+ * point). No stacked or tilted cards.
  *
  * The crop then does what the feature does, the cursor (stageshow's large
  * style, to match the zoom) pressing the real control where there is one:
@@ -27,6 +28,8 @@ export type ArtKind = 'kpi' | 'range' | 'scrub' | 'bars' | 'fill' | 'funnel' | '
 export type ListSet = 'pages' | 'sources' | 'tech' | 'region'
 
 const W = 360, H = 200
+// Figma 241:35540: the glitch squares' white alpha, row by row (5 × 5, right edge, centred)
+const GLITCH = [0, .2, .4, .2, .8, .2, .4, .7, .8, 0, .8, 0, 0, .8, .2, 0, .8, .4, 0, .7, .8, .7, .2, .4, .4]
 type Pt = { x: number; y: number }
 
 function Close<S extends object>({ initial, poster, script, cursor, children }: {
@@ -35,7 +38,13 @@ function Close<S extends object>({ initial, poster, script, cursor, children }: 
   return (
     <Stage width={W} height={H} initial={initial} poster={poster} script={script} play="loop" unframed className="cx" accent="#d97706"
       cursor={cursor ? { at: cursor, style: 'large' } : undefined}>
-      {(s) => <div className="cx-ground">{children(s)}</div>}
+      {(s) => (
+        <div className="cx-ground">
+          <div className="cx-glitch">{GLITCH.map((a, i) => <i key={i} style={{ background: `rgba(255,255,255,${a})` }} />)}</div>
+          {/* the crop sits 14px down so the amber and squares show above it, as in the frame */}
+          <div className="cx-shift">{children(s)}</div>
+        </div>
+      )}
     </Stage>
   )
 }
@@ -119,16 +128,17 @@ function RangeScene() {
     <Close<RS> initial={{ open: false, r: '7' }} poster={{ open: false, r: '30' }} script={rangeScript} cursor={{ x: 250, y: 168 }}>
       {(s) => (
         <>
-          <div className="cx-title" style={{ left: 20, top: 22 }}>Overview</div>
-          <button className="cx-select" data-target="sel" data-cursor="pointer" style={{ right: 20, top: 18 }}>
+          <div className="cx-card" style={{ left: 16, top: 6, width: 420, height: 240 }} />
+          <div className="cx-title" style={{ left: 32, top: 22 }}>Overview</div>
+          <button className="cx-select" data-target="sel" data-cursor="pointer" style={{ right: 28, top: 18 }}>
             <TextMorph>{s.r === '7' ? 'Last 7 days' : 'Last 30 days'}</TextMorph><ChevronsUpDown size={15} />
           </button>
-          <div className="cx-card" style={{ left: 20, top: 66, width: 400, height: 170, padding: '14px 0 0' }}>
+          <div style={{ position: 'absolute', left: 22, top: 70 }}>
             <div style={{ width: 330 }}>
               <LiveChart mini height={112} labels={DAYS} series={[{ key: 'a', label: 'Active', color: '#d97706', values: RANGE_LINES[s.r] }]} />
             </div>
           </div>
-          <div className="cx-menu" data-open={s.open} style={{ right: 20, top: 58 }}>
+          <div className="cx-menu" data-open={s.open} style={{ right: 28, top: 58 }}>
             {(['24h', '7', '30'] as const).map((o) => (
               <div key={o} className="cx-mi" data-target={o === '24h' ? undefined : 'o' + o} data-cursor="pointer">
                 {o === '24h' ? 'Last 24 hours' : `Last ${o} days`}{s.r === o && <Check size={15} />}
@@ -151,7 +161,7 @@ async function scrubScript(a: Act<SS>) {
   await a.wait(700)
   for (const i of [4, 6, 8]) {
     const p = scrubPts[i]
-    await a.move({ x: SC.x + p.x, y: SC.y + p.y + 26 }, { duration: 650 })
+    await a.move({ x: SC.x + p.x, y: SC.y + p.y + 40 }, { duration: 650 }) // +14: the crop's offset
     await a.set({ i })
     await a.wait(900)
   }
@@ -264,10 +274,10 @@ function FillScene() {
     <Close<FS> initial={{ m: 'filled' }} poster={{ m: 'filled' }} script={fillScript} cursor={{ x: 200, y: 120 }}>
       {(s) => (
         <>
-          <div className="cx-card" style={{ left: -14, top: -14, width: 350, height: 156, padding: '28px 16px 12px 30px' }}>
-            <div style={{ position: 'relative', height: 112 }}><FillChart m={s.m} /></div>
+          <div className="cx-card" style={{ left: 16, top: 6, width: 420, height: 240, padding: '22px 0 0 20px' }}>
+            <div style={{ position: 'relative', height: 104, width: 300 }}><FillChart m={s.m} /></div>
           </div>
-          <div className="cx-dock" style={{ right: 16, top: 152 }}>
+          <div className="cx-dock" style={{ right: 16, top: 136 }}>
             <span className="cx-dock-l">Data</span>
             <span className="cx-seg">
               <i className="cx-thumb" style={{ left: s.m === 'filled' ? 3 : 141, width: s.m === 'filled' ? 64 : 62 }} />
@@ -282,8 +292,8 @@ function FillScene() {
   )
 }
 
-/* ── Funnel: each step lands in order, with the drop between them ── */
-const FUN = [{ l: '/', v: 100 }, { l: '/pricing', v: 64 }, { l: '/signup', v: 38 }, { l: '/checkout', v: 21 }]
+/* ── Funnel: each step lands in order, flowing into the next (the Overview funnel's bands) ── */
+const FUN = [{ l: '/', v: 100, c: '#d97706' }, { l: '/pricing', v: 64, c: '#2a78d6' }, { l: '/signup', v: 38, c: '#1baf7a' }, { l: '/checkout', v: 18, c: '#6250d6' }]
 type FuS = { n: number }
 async function funnelScript(a: Act<FuS>) {
   for (let n = 1; n <= 4; n++) { await a.wait(n === 1 ? 500 : 420); await a.set({ n }) }
@@ -292,25 +302,30 @@ async function funnelScript(a: Act<FuS>) {
   await a.wait(500)
 }
 function FunnelScene() {
-  const colW = 64, gap = 36, base = 156, span = 80 // tallest column tops out at 68, clear of the title
+  // bands centred on one midline, as in the real funnel; flows curve from each step into the next
+  const colW = 72, gap = 30, mid = 92, span = 96
+  const h = (v: number) => Math.max(8, (span * v) / 100)
   return (
     <Close<FuS> initial={{ n: 0 }} poster={{ n: 4 }} script={funnelScript}>
       {(s) => (
-        <div className="cx-card" style={{ left: 20, top: 16, width: 400, height: 220 }}>
+        <div className="cx-card" style={{ left: 16, top: 16, width: 420, height: 230 }}>
           <div className="cx-head"><span className="cx-h">Conversion Funnel</span></div>
-          <svg className="cx-funnel" width={400} height={200} style={{ position: 'absolute', left: 0, top: 0 }}>
+          <svg className="cx-funnel" width={420} height={200} style={{ position: 'absolute', left: 0, top: 0 }}>
             {FUN.map((f, i) => {
-              const x = 20 + i * (colW + gap), h = (span * f.v) / 100 + 8
-              const next = FUN[i + 1], on = s.n > i, flowOn = s.n > i + 1
-              const nh = next ? (span * next.v) / 100 + 8 : 0
+              const x = 16 + i * (colW + gap), hh = h(f.v), next = FUN[i + 1]
+              const on = s.n > i, flowOn = s.n > i + 1
+              const nh = next ? h(next.v) : 0, x1 = x + colW, x2 = x1 + gap, cx = (x1 + x2) / 2
               return (
                 <g key={f.l}>
-                  {next && <path d={`M${x + colW},${base - h} L${x + colW + gap},${base - nh} L${x + colW + gap},${base} L${x + colW},${base} Z`}
-                    fill="#d97706" opacity={flowOn ? 0.18 : 0} style={{ transition: 'opacity .4s ease' }} />}
-                  <rect x={x} y={base - h} width={colW} height={h} rx={4} fill="#d97706" opacity={1 - i * 0.14}
-                    style={{ transformOrigin: `${x}px ${base}px`, transform: on ? 'none' : 'scaleY(0)', transition: 'transform .5s cubic-bezier(.23,1,.32,1)' }} />
-                  <text x={x} y={base + 18} className="cx-fl">{f.l}</text>
-                  <text x={x + colW / 2} y={base - h - 8} textAnchor="middle" className="cx-fv" opacity={on ? 1 : 0} style={{ transition: 'opacity .3s ease' }}>{f.v}%</text>
+                  {next && <path d={`M${x1},${mid - hh / 2} C${cx},${mid - hh / 2} ${cx},${mid - nh / 2} ${x2},${mid - nh / 2} L${x2},${mid + nh / 2} C${cx},${mid + nh / 2} ${cx},${mid + hh / 2} ${x1},${mid + hh / 2} Z`}
+                    fill={next.c} opacity={flowOn ? 0.85 : 0} style={{ transition: 'opacity .4s ease' }} />}
+                  <rect x={x} y={mid - hh / 2} width={colW} height={hh} fill={f.c} opacity={0.9}
+                    style={{ transformOrigin: `${x}px ${mid}px`, transform: on ? 'none' : 'scaleY(0)', transition: 'transform .5s cubic-bezier(.23,1,.32,1)' }} />
+                  <g opacity={on ? 1 : 0} style={{ transition: 'opacity .3s ease .15s' }}>
+                    <rect x={x + colW / 2 - 22} y={mid - 10} width={44} height={20} rx={5} fill="#fff" />
+                    <text x={x + colW / 2} y={mid + 4} textAnchor="middle" className="cx-fv">{f.v}%</text>
+                  </g>
+                  <text x={x + colW / 2} y={mid + span / 2 + 20} textAnchor="middle" className="cx-fl">{f.l}</text>
                 </g>
               )
             })}
@@ -341,16 +356,17 @@ function AgentScene() {
     <Close<AS> initial={{ q: '', sent: false, phase: 0 }} poster={{ q: '', sent: true, phase: 2 }} script={agentScript} cursor={{ x: 318, y: 184 }}>
       {(s) => (
         <>
-          <div className="cx-q" data-on={s.sent} style={{ right: 20, top: 14 }}>Why did sign-ups dip?</div>
-          <div className="cx-run" data-on={s.phase > 0} style={{ left: 20, top: 48 }}>
+          <div className="cx-card" style={{ left: 16, top: 0, width: 420, height: 240 }} />
+          <div className="cx-q" data-on={s.sent} style={{ right: 28, top: 12 }}>Why did sign-ups dip?</div>
+          <div className="cx-run" data-on={s.phase > 0} style={{ left: 32, top: 48 }}>
             <img src="/brand/ferno-agent.svg" width={16} height={16} alt="" className={s.phase === 1 ? 'mark-think' : undefined} />
             <TextMorph>{s.phase === 2 ? 'Ran 3 queries' : 'Running queries…'}</TextMorph>
           </div>
-          <div className="cx-ans" data-on={s.phase === 2} style={{ left: 20, top: 74 }}>
+          <div className="cx-ans" data-on={s.phase === 2} style={{ left: 32, top: 72 }}>
             <Bar w={210} h={7} tone={2} />
             <Chart kind="line" data={[30, 32, 31, 34, 33, 22, 24, 26]} width={210} height={34} area show={s.phase === 2} className="cx-line" />
           </div>
-          <div className="cx-composer" style={{ left: 20, top: 122, width: 340 }}>
+          <div className="cx-composer" style={{ left: 32, top: 116, width: 330 }}>
             <div className={'cx-input' + (s.q ? '' : ' ph')}>{s.q || 'Ask about sign-ups, a page…'}</div>
             <div className="cx-crow">
               <span className="cx-cchip">Last 7 days</span>

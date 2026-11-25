@@ -108,7 +108,7 @@ export default function App() {
   else if (route === 'reports') page = <Reports />
   else if (route.startsWith('report/')) page = <ReportDetail id={route.slice(7)} />
   else if (route === 'agent') page = <AgentHome onAsk={ask} />
-  else if (route === 'tips') page = <div className="page fade-page"><PageHeader title="Tips" sub="Every tour step and info tip, for review." /><TipGallery /></div>
+  else if (route === 'tips') page = <div className="page fade-page"><PageHeader title="Tips" sub="Every tour step and info tip in one place." /><TipGallery /></div>
   else if (route === 'chat') page = msgs.length ? <Chat msgs={msgs} onAsk={ask} /> : <AgentHome onAsk={ask} />
   else {
     const [t, s] = TITLES[route] ?? ['Not found', '']

@@ -8,22 +8,23 @@ Entry types: **New** (screen or feature), **Changed** (redesign or behaviour cha
 
 ### New
 - **Tip card** from the Figma tooltip frame (Ferno · Tooltip): a title, a description, an illustration and Previous / Next. The description wraps to two lines (Figma truncates to one) so the real copy fits.
-- **Close-up illustrations.** Each tip shows a crop of the screen it points at, about 1.2× size on the page's own grey ground: one card, no stacked or tilted layers. The crop then does what the feature does, with a large cursor pressing the real control:
+- **Close-up illustrations.** Each tip shows a crop of the screen it points at, about 1.2× size: one card on the amber ground with the white glitch squares (Figma tooltip background), lifted by the frame's soft shadow. No stacked or tilted layers. The crop then does what the feature does, with a large cursor pressing the real control:
   - the date range opens, a longer period is picked and the line morphs (Liveline, torph);
   - a legend chip is tapped and its events leave the stack;
   - list tabs switch and labels morph (torph);
   - the agent gets a question typed and sent, runs its queries and answers with a chart;
+  - the funnel's coloured bands land step by step and flow into each other;
   - repeated clicks heat a button and flag a rage click;
   - a report's status, impact meter and chip land as the investigation finishes;
   - Empty clears a chart and Filled brings the data back behind an accent glimm sweep.
   - Scenes are stageshow stages, drawn at exactly 1:1 so torph can place its letters; they hold their end frame under reduced motion.
 - **Guided tour:** 7 steps across Overview, Ferno Agent, Heatmaps, Reports and the Data switch. Each step opens its page, spotlights its target and places the card beside it. The spotlighted control stays usable, so you can try it.
-  - Controls: Previous / Next, ← / →, and Escape to leave.
+  - Controls: Previous / Next, ← / →, Escape, and a close (×) at the top right of every step for returning users.
   - It opens once on a first visit. **Take the tour** in the sidebar replays it.
 - **Info tips** beside card titles on Overview, Analytics and Heatmaps open the same card.
   - A mouse opens it after a 250ms hover, and a click keeps it open. It also opens on keyboard focus, and a tap toggles it.
-- **#/tips** (not in the nav): every tour step and info tip side by side, for review.
-- **Sidebar › Prototype** group: Take the tour, and **Tooltip style** (Classic / New). New restyles the small tooltips (sidebar rail, sidebar toggle, chart readouts) to the tip card's surface: white, neutral-100 hairline, the Figma shadow, Inter Medium. The choice is remembered on the device.
+- **All tips** page (`#/tips`, in the sidebar's Prototype group): every tour step and info tip side by side.
+- **Sidebar › Prototype** group: All tips, Take the tour, and **Tooltip style** (Classic / New). New restyles the small tooltips (sidebar rail, sidebar toggle, chart readouts) to the tip card's surface: white, neutral-100 hairline, the Figma shadow, Inter Medium. The choice is remembered on the device.
 
 ## 2026-11-24 — Design audit pass
 

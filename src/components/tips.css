@@ -7,7 +7,15 @@
   box-shadow: 0 2px 2px rgba(24, 24, 24, .05), 0 4px 4px rgba(24, 24, 24, .08);
   font-family: var(--font-body); font-weight: 500; text-align: left; white-space: normal;
 }
-.tip-head { display: grid; gap: 4px; padding: 12px; }
+.tip-head { position: relative; display: grid; gap: 4px; padding: 12px; }
+.tip-head.has-close { padding-right: 44px; }
+.tip-close {
+  position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; display: grid; place-items: center; border: 0; padding: 0;
+  border-radius: 7px; background: transparent; color: var(--n-400); transition: color .15s ease, background-color .15s ease, transform .12s var(--ease-out);
+}
+.tip-close:hover { color: var(--n-900); background: var(--n-50); }
+.tip-close:active { transform: scale(.94); }
+.tip-close:focus-visible { outline: 2px solid var(--accent-500); outline-offset: 1px; }
 .tip-title { margin: 0; font-size: 14px; line-height: 20px; letter-spacing: -0.42px; color: var(--n-900); }
 /* Figma truncates to one line; real copy needs two, so it wraps and clamps there */
 .tip-sub {
@@ -16,7 +24,7 @@
 }
 
 /* the close-up panel: the page's own grey ground, one card cropped at ~1.2× */
-.tip-art { position: relative; height: 200px; background: var(--group); overflow: hidden; border-top: 1px solid var(--n-100); border-bottom: 1px solid var(--n-100); }
+.tip-art { position: relative; height: 200px; background: var(--accent-500); overflow: hidden; border-top: 1px solid var(--n-100); border-bottom: 1px solid var(--n-100); }
 /* always 360px wide, never scaled: on a narrow phone the card crops a few px instead,
    because torph places letters by on-screen measurement and drifts inside a scaled stage */
 .tip-art .cx { position: absolute; left: 0; top: 0; width: 360px; height: 200px; }
@@ -79,8 +87,18 @@
 
 /* ───────── Close-up scenes (TipArt) ─────────
  * Sizes are the real UI at about 1.2×: 18px titles, 13–14px body. */
-.cx-ground { position: absolute; inset: 0; text-align: left; background: var(--group); font-family: var(--font-body); color: var(--n-900); }
-.cx-card { position: absolute; background: #fff; border-radius: 14px; padding: 16px; overflow: hidden; box-shadow: 0 0 0 1px rgba(23, 23, 23, .04); }
+/* Figma 241:35539: the accent ground with white glitch squares at 60% on the right edge */
+.cx-ground { position: absolute; inset: 0; text-align: left; background: var(--accent-500); font-family: var(--font-body); color: var(--n-900); }
+.cx-glitch {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%); opacity: .6;
+  display: grid; grid-template-columns: repeat(5, 40.4px); grid-auto-rows: 40.4px;
+}
+.cx-shift { position: absolute; inset: 14px 0 0; }
+/* Figma 241:35571: hairline border, 17.5px radius, and a soft shadow falling left to lift it off the amber */
+.cx-card {
+  position: absolute; background: #fff; border: 1px solid var(--n-100); border-radius: 17.5px; padding: 16px; overflow: hidden;
+  box-shadow: -20px 4px 16px -12px rgba(24, 24, 24, .16);
+}
 .cx-h, .cx-title { font: 500 18px/24px var(--font-body); letter-spacing: -0.02em; white-space: nowrap; }
 .cx-title { position: absolute; font: 600 24px/30px var(--font-head); }
 .cx-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -147,7 +165,7 @@
 .fx-fill-empty { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 2px; font-size: 13px; color: var(--n-500); opacity: 0; transition: opacity .25s ease; }
 .fx-fill-empty b { font-weight: 500; font-size: 14px; color: var(--n-900); }
 .fx-fill[data-filled='false'] .fx-fill-empty { opacity: 1; transition-delay: .15s; }
-.cx-dock { position: absolute; display: flex; align-items: center; gap: 10px; padding: 5px 5px 5px 14px; border-radius: 99px; background: var(--n-900); color: #a4a4a4; font-size: 14px; }
+.cx-dock { position: absolute; box-shadow: -20px 4px 16px -12px rgba(24, 24, 24, .16), 0 4px 12px rgba(24, 24, 24, .18); display: flex; align-items: center; gap: 10px; padding: 5px 5px 5px 14px; border-radius: 99px; background: var(--n-900); color: #a4a4a4; font-size: 14px; }
 .cx-seg { position: relative; display: flex; padding: 3px; border-radius: 99px; background: #2b2b2b; }
 .cx-seg > span { position: relative; height: 30px; padding: 0 12px; display: grid; place-items: center; color: #a4a4a4; transition: color .2s ease; }
 .cx-seg > span[data-on='true'] { color: var(--n-900); }
@@ -155,7 +173,7 @@
 
 /* funnel */
 .cx-fl { font: 12px var(--font-mono); fill: var(--n-600); }
-.cx-fv { font: 500 13px var(--font-body); fill: var(--n-900); }
+.cx-fv { font: 500 11px var(--font-mono); fill: var(--n-900); }
 
 /* agent */
 .cx-q { position: absolute; padding: 8px 12px; border-radius: 12px 12px 3px 12px; background: #fff; font-size: 14px; box-shadow: 0 0 0 1px var(--n-100); opacity: 0; transform: translateY(6px); transition: opacity .3s ease, transform .3s cubic-bezier(.23, 1, .32, 1); }

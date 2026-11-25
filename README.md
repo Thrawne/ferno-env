@@ -20,7 +20,7 @@ An interactive prototype of the **Ferno** redesign: the screens from the Figma r
 
 Members, API Keys, Integrations, Docs and Settings show a placeholder for now.
 
-**Prototype controls:** the floating **Data** switch (bottom right) flips every screen between *Filled*, *Loading* (the pixel squares fill in) and *Empty* (the Figma empty states). The date-range menu changes the data too. The sidebar's **Prototype** group replays the guided tour and switches the small tooltips between the current style and the Figma tip style.
+**Prototype controls:** the floating **Data** switch (bottom right) flips every screen between *Filled*, *Loading* (the pixel squares fill in) and *Empty* (the Figma empty states). The date-range menu changes the data too. The sidebar's **Prototype** group opens **All tips** (every tip card on one page), replays the guided tour, and switches the small tooltips between the current style and the Figma tip style.
 
 **Tips:** the guided tour (first visit, or *Take the tour*) and the (i) beside card titles both use the Figma tip card (`src/components/Tip.tsx`). Its faux-UI art lives in `src/components/TipArt.tsx`.
 
