@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
-import { BookOpen, ChartLine, ChevronDown, ChevronsUpDown, FileText, KeyRound, LayoutDashboard, LogOut, MousePointerClick, Plus, Puzzle, Settings, Users, Check } from 'lucide-react'
+import { BookOpen, ChartLine, ChevronDown, ChevronsUpDown, Compass, FileText, KeyRound, LayoutDashboard, LogOut, MessageSquare, MousePointerClick, Plus, Puzzle, Settings, Users, Check } from 'lucide-react'
+import { TextMorph } from 'torph/react'
+import type { ReactNode } from 'react'
 import { FernoMark, Popover, useApp } from './ui'
 
 const WORKSPACE = [
@@ -9,6 +11,7 @@ const WORKSPACE = [
   { id: 'analytics', label: 'Analytics', icon: <ChartLine size={16} /> },
   { id: 'reports', label: 'Reports', icon: <FileText size={16} /> },
 ]
+type Item = { id: string; label: string; icon: ReactNode; onClick?: () => void; trail?: ReactNode }
 const MANAGE = [
   { id: 'members', label: 'Members', icon: <Users size={16} /> },
   { id: 'api-keys', label: 'API Keys', icon: <KeyRound size={16} /> },
@@ -23,7 +26,7 @@ function UserTile() {
   return <img src="/brand/user-avatar.svg" width={32} height={32} alt="" aria-hidden style={{ flexShrink: 0, borderRadius: 4 }} />
 }
 
-function Group({ label, items, go }: { label: string; items: typeof WORKSPACE; go: (r: string) => void }) {
+function Group({ label, items, go }: { label: string; items: Item[]; go: (r: string) => void }) {
   const { route, collapsed } = useApp()
   const [openState, setOpen] = useState(true)
   const open = openState || collapsed // the icon rail always shows every item
@@ -35,9 +38,9 @@ function Group({ label, items, go }: { label: string; items: typeof WORKSPACE; g
       <div className="nav-items" style={{ display: 'grid', gridTemplateRows: open ? '1fr' : '0fr', transition: 'grid-template-rows .25s cubic-bezier(.23,1,.32,1)' }}>
         <div style={{ minHeight: 0, display: 'grid', gap: 2 }}>
           {items.map((it) => (
-            <button key={it.id} className={'nav-item' + (route === it.id || (it.id === 'agent' && route === 'chat') || (it.id === 'reports' && route.startsWith('report/')) ? ' active' : '')} onClick={() => go(it.id)}
+            <button key={it.id} className={'nav-item' + (route === it.id || (it.id === 'agent' && route === 'chat') || (it.id === 'reports' && route.startsWith('report/')) ? ' active' : '')} onClick={() => (it.onClick ? it.onClick() : go(it.id))}
               data-tip={it.label} aria-label={collapsed ? it.label : undefined}>
-              <span className="nav-ico">{it.icon}</span><span className="nav-label">{it.label}</span>
+              <span className="nav-ico">{it.icon}</span><span className="nav-label">{it.label}</span>{it.trail}
             </button>
           ))}
         </div>
@@ -47,7 +50,15 @@ function Group({ label, items, go }: { label: string; items: typeof WORKSPACE; g
 }
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const { go: rawGo, route } = useApp()
+  const { go: rawGo, route, tipStyle, setTipStyle, startTour } = useApp()
+  // prototype-only controls, kept apart from the product's own navigation
+  const PROTO: Item[] = [
+    { id: 'tour', label: 'Take the tour', icon: <Compass size={16} />, onClick: () => { startTour(); onNavigate?.() } },
+    {
+      id: 'tips', label: 'Tooltip style', icon: <MessageSquare size={16} />, onClick: () => setTipStyle(tipStyle === 'figma' ? 'classic' : 'figma'),
+      trail: <span className="nav-trail nav-label"><TextMorph>{tipStyle === 'figma' ? 'New' : 'Classic'}</TextMorph></span>,
+    },
+  ]
   const go = (r: string) => { rawGo(r); onNavigate?.() }
   const [wsOpen, setWsOpen] = useState(false)
   const [userOpen, setUserOpen] = useState(false)
@@ -76,6 +87,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <Group label="Workspace" items={WORKSPACE} go={go} />
       <div className="nav-sep" />
       <Group label="Manage" items={MANAGE} go={go} />
+      <div className="nav-sep" />
+      <Group label="Prototype" items={PROTO} go={go} />
 
       <div className="sidebar-spacer" />
       <button className={'nav-item' + (route === 'docs' ? ' active' : '')} onClick={() => go('docs')} data-tip="Docs"><span className="nav-ico"><BookOpen size={16} /></span><span className="nav-label">Docs</span></button>

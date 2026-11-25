@@ -20,7 +20,9 @@ An interactive prototype of the **Ferno** redesign: the screens from the Figma r
 
 Members, API Keys, Integrations, Docs and Settings show a placeholder for now.
 
-**Prototype controls:** the floating **Data** switch (bottom right) flips every screen between *Filled*, *Loading* (the pixel squares fill in) and *Empty* (the Figma empty states). The date-range menu changes the data too.
+**Prototype controls:** the floating **Data** switch (bottom right) flips every screen between *Filled*, *Loading* (the pixel squares fill in) and *Empty* (the Figma empty states). The date-range menu changes the data too. The sidebar's **Prototype** group replays the guided tour and switches the small tooltips between the current style and the Figma tip style.
+
+**Tips:** the guided tour (first visit, or *Take the tour*) and the (i) beside card titles both use the Figma tip card (`src/components/Tip.tsx`). Its faux-UI art lives in `src/components/TipArt.tsx`.
 
 ## Design source
 
@@ -47,7 +49,7 @@ Then open the URL Vite prints. `npm run build` type-checks and builds to `dist/`
   - Ranked lists and the share bar keep fixed row slots so switching tabs morphs labels ([torph](https://torph.dev)), bar widths and numbers in place.
 - **Recent thumbnails** are small faux UIs built with the [stageshow](./src/kit) kit (`src/components/RecentThumb.tsx`).
 - **Assets:** sidebar icons are exported from Figma (`public/brand/`); brand logos are SVGs from svgl (`public/logos/`).
-- **Installed for upcoming work:** [glimm](https://glimm.dev) (WebGL sweep transitions).
+- **glimm** ([glimm.dev](https://glimm.dev)) plays the accent sweep in the tour's empty → filled illustration (`GlimmScope`, band only).
 
 ### Where things live
 

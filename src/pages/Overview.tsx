@@ -1,3 +1,4 @@
+import { CardTitle } from '../components/Tip'
 import { useState } from 'react'
 import { TextMorph } from 'torph/react'
 import { ArrowRight, Pencil, Plus, Sparkles, X, Zap, Users, Activity } from 'lucide-react'
@@ -24,7 +25,7 @@ export function Overview({ ask }: { ask: (q: string) => void }) {
       <PageHeader title="Overview" sub="See what changed, understand why, and move the right response forward." right={<RangeSelect />} />
       <div className="group">
         <Banner />
-        <div className="grid g-kpi3">
+        <div className="grid g-kpi3" data-tour="kpis">
           <Kpi icon={<Zap size={14} />} label="Total Events" value={totalEvents} format={(n) => fmtFull(Math.round(n))} delta={rangeDelta(12.4, range)} foot={rangeSpan(range)} spark={d.events.pageviews} />
           <Kpi icon={<Users size={14} />} label="Active Users" value={sum(d.active)} format={(n) => fmtFull(Math.round(n))} delta={rangeDelta(8.1, range)} foot={rangeSpan(range)} spark={d.active} sparkColor="var(--s2)" />
           <Kpi icon={<Activity size={14} />} label="Conversion" value={CONVERSION[range]} format={(n) => n.toFixed(1) + '%'} delta={rangeDelta(-2.1, range)} foot="Landing → Checkout" spark={d.events.signups} sparkColor="var(--s3)" />
@@ -33,7 +34,7 @@ export function Overview({ ask }: { ask: (q: string) => void }) {
         <div className="grid g-2w">
           <div className="card">
             <div className="card-head">
-              <h3 className="card-title">Active Users</h3>
+              <CardTitle tip="activeUsers">Active Users</CardTitle>
             </div>
             <div style={{ marginTop: 16 }}>
               <Body height={300} empty={{ title: 'No active users this period', sub: `No users were active in the ${RANGE_LABEL[range].toLowerCase()}. Try a longer period.` }}>
@@ -46,7 +47,7 @@ export function Overview({ ask }: { ask: (q: string) => void }) {
           </div>
           <div className="card">
             <div className="card-head">
-              <h3 className="card-title">Event Activity</h3>
+              <CardTitle tip="eventActivity">Event Activity</CardTitle>
               {mode === 'filled' && !loading && (
                 <div className="legend chips">
                   {EVENT_SERIES.map((s) => (
@@ -94,9 +95,9 @@ function FunnelCard() {
   const counts = steps ? funnelCounts(steps, range) : []
 
   return (
-    <div className="card" style={{ minHeight: 400, display: 'flex', flexDirection: 'column' }}>
+    <div className="card" data-tour="funnel" style={{ minHeight: 400, display: 'flex', flexDirection: 'column' }}>
       <div className="card-head">
-        <h3 className="card-title">Conversion Funnel</h3>
+        <CardTitle tip="funnel">Conversion Funnel</CardTitle>
         {!showBuilder && !loading && (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span className="card-sub num"><TextMorph numbers>{`${fmt(counts[counts.length - 1].value)} converted · ${((counts[counts.length - 1].value / counts[0].value) * 100).toFixed(1)}%`}</TextMorph></span>

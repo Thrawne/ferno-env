@@ -22,7 +22,7 @@ export function Composer({ onSend, autoFocus }: { onSend: (q: string) => void; a
   const send = () => { if (v.trim()) { onSend(v.trim()); setV('') } }
   return (
     <div className="composer">
-      <div className="composer-box">
+      <div className="composer-box" data-tour="composer">
         <textarea value={v} autoFocus={autoFocus} placeholder="Ask about sign-ups, a page, or a release…" rows={2}
           onChange={(e) => setV(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }} />

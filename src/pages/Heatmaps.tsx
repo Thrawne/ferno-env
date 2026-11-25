@@ -1,3 +1,4 @@
+import { CardTitle } from '../components/Tip'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { TextMorph } from 'torph/react'
 import { CircleDashed, MousePointerClick, Move, Smartphone, Zap } from 'lucide-react'
@@ -191,8 +192,8 @@ export function Heatmaps() {
     <div className="page fade-page">
       <PageHeader title="Heatmaps" sub="See where users click, hesitate, and run into friction on each page." />
       <div className="group">
-        <div className="card">
-          <h3 className="card-title">Choose a page</h3>
+        <div className="card" data-tour="heat">
+          <CardTitle tip="heatmap">Choose a page</CardTitle>
           <p className="card-sub" style={{ margin: '4px 0 16px', fontSize: 14 }}>Viewing interactions captured by Tokencraft.</p>
           <div className="hm-selects" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 2, background: 'var(--n-50)', borderRadius: 10, padding: 2 }}>
             <Select value={activePage} placeholder="No pages captured" onChange={(v) => setPage(v)}

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Menu } from 'lucide-react'
 import { Sidebar, WsTile } from './components/Sidebar'
-import { AppCtx, EmptyState, PageHeader, PixelCorner, Seg, type Mode } from './components/ui'
+import { AppCtx, EmptyState, PageHeader, PixelCorner, Seg, type Mode, type TipStyle } from './components/ui'
+import { Tour } from './components/Tip'
 import type { Range } from './data'
 import { Overview } from './pages/Overview'
 import { Analytics } from './pages/Analytics'
@@ -44,6 +45,23 @@ export default function App() {
   }, [])
   const timer = useRef<number>(0)
 
+  // prototype: which style the small tooltips use (compare against the Figma tip card)
+  const [tipStyle, setTipStyleState] = useState<TipStyle>(() => { try { return localStorage.getItem('ferno:tips') === 'figma' ? 'figma' : 'classic' } catch { return 'classic' } })
+  const setTipStyle = useCallback((t: TipStyle) => { setTipStyleState(t); try { localStorage.setItem('ferno:tips', t) } catch { /* */ } }, [])
+  useEffect(() => { document.documentElement.dataset.tips = tipStyle }, [tipStyle])
+
+  // guided tour: opens once on a first visit, and from the sidebar any time
+  const [tour, setTour] = useState(0) // 0 = closed, otherwise a run number (restarts at step 1)
+  const startTour = useCallback(() => { setNavOpen(false); setTour((t) => t + 1) }, [])
+  const endTour = useCallback(() => { setTour(0); try { localStorage.setItem('ferno:tour', 'done') } catch { /* */ } }, [])
+  useEffect(() => {
+    let seen = true
+    try { seen = localStorage.getItem('ferno:tour') === 'done' } catch { /* */ }
+    if (seen || readRoute() === 'signin') return
+    const t = setTimeout(() => setTour(1), 900)
+    return () => clearTimeout(t)
+  }, [])
+
   useEffect(() => {
     const h = () => { setRoute(readRoute()); setNavOpen(false) }
     window.addEventListener('hashchange', h)
@@ -80,7 +98,7 @@ export default function App() {
   }
 
   if (route === 'signin') {
-    return <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, refreshing, collapsed, setCollapsed }}><SignIn /></AppCtx.Provider>
+    return <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, refreshing, collapsed, setCollapsed, tipStyle, setTipStyle, startTour }}><SignIn /></AppCtx.Provider>
   }
 
   let page
@@ -105,7 +123,7 @@ export default function App() {
   }
 
   return (
-    <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, refreshing, collapsed, setCollapsed }}>
+    <AppCtx.Provider value={{ route, go, range, setRange, mode, setMode, loading, refreshing, collapsed, setCollapsed, tipStyle, setTipStyle, startTour }}>
       <div className={'shell' + (navOpen ? ' nav-open' : '') + (collapsed ? ' collapsed' : '')}>
         <header className="topbar">
           <button className="btn icon-btn btn-ghost" aria-label="Open menu" onClick={() => setNavOpen(true)}><Menu size={18} /></button>
@@ -117,12 +135,13 @@ export default function App() {
         <div className="scrim" onClick={() => setNavOpen(false)} />
         <main className="main" key={route}>{page}</main>
       </div>
-      <div className="proto-dock" role="group" aria-label="Prototype data state">
+      <div className="proto-dock" role="group" aria-label="Prototype data state" data-tour="dock">
         <span style={{ opacity: .7 }}>Data</span>
         <Seg<string> value={loading && mode === 'filled' ? 'Loading' : mode === 'empty' ? 'Empty' : 'Filled'}
           options={['Filled', 'Loading', 'Empty']}
           onChange={(v) => setMode(v.toLowerCase() as Mode)} />
       </div>
+      {tour > 0 && route !== 'signin' && <Tour key={tour} onClose={endTour} />}
     </AppCtx.Provider>
   )
 }

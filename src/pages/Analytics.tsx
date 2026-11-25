@@ -1,3 +1,4 @@
+import { CardTitle } from '../components/Tip'
 import { useState } from 'react'
 import { Clock, Eye, FileText, Layers, LogOut, Megaphone, Monitor, MousePointer2, Repeat, RotateCcw, Smartphone, Tablet, Target, Users } from 'lucide-react'
 import { LiveChart } from '../charts/LiveChart'
@@ -41,7 +42,7 @@ export function Analytics() {
 
         <div className="card">
           <div className="card-head">
-            <h3 className="card-title">Traffic</h3>
+            <CardTitle tip="traffic">Traffic</CardTitle>
             <Seg value={metric} options={['Visitors', 'Views', 'Sessions']} onChange={setMetric} />
           </div>
           <div style={{ marginTop: 16 }}>
@@ -57,13 +58,13 @@ export function Analytics() {
         <div className="section-label"><FileText size={14} />Pages &amp; Sources</div>
         <div className="grid g-2">
           <div className="card">
-            <div className="card-head"><h3 className="card-title">Pages</h3><Seg value={pages} options={['Top', 'Entry', 'Exit']} onChange={setPages} /></div>
+            <div className="card-head"><CardTitle tip="pages">Pages</CardTitle><Seg value={pages} options={['Top', 'Entry', 'Exit']} onChange={setPages} /></div>
             <Body height={300} empty={empty}>
               <BarList mono head={['Page', 'Visitors']} slots={6} rows={PAGES[pages].map(([p, v]) => ({ key: p, text: p, label: null, value: v }))} />
             </Body>
           </div>
           <div className="card">
-            <div className="card-head"><h3 className="card-title">Sources</h3><Seg value={src} options={['Sources', 'Campaigns']} onChange={setSrc} /></div>
+            <div className="card-head"><CardTitle tip="sources">Sources</CardTitle><Seg value={src} options={['Sources', 'Campaigns']} onChange={setSrc} /></div>
             <Body height={300} empty={empty}>
               <BarList mono={src === 'Campaigns'} head={[src === 'Sources' ? 'Referrer' : 'Campaign', 'Visitors']} slots={6} rows={SOURCES[src].map((r) => ({
                 key: r.name, text: r.name, label: null, value: r.value, icon: <SourceLogo row={r} />, iconKey: r.logo ?? r.icon,
@@ -75,19 +76,19 @@ export function Analytics() {
         <div className="section-label"><Target size={14} />Audience</div>
         <div className="grid g-3">
           <div className="card">
-            <div className="card-head"><h3 className="card-title">New vs. Returning</h3></div>
+            <div className="card-head"><CardTitle tip="newReturning">New vs. Returning</CardTitle></div>
             <Body height={300} empty={empty}>
               <NewReturning total={d.totals.visitors} />
             </Body>
           </div>
           <div className="card">
-            <div className="card-head"><h3 className="card-title">Technology</h3><Seg value={tech} options={['Devices', 'Browsers', 'Systems']} onChange={setTech} /></div>
+            <div className="card-head"><CardTitle tip="technology">Technology</CardTitle><Seg value={tech} options={['Devices', 'Browsers', 'Systems']} onChange={setTech} /></div>
             <Body height={300} empty={empty}>
               <ShareBar slots={5} items={TECH[tech].map(([l, v, logo], i) => ({ label: l, value: v, color: PALETTE[i], iconKey: logo || l, icon: logo ? <img className="logo" src={`/logos/${logo}.svg`} alt="" /> : <DeviceIcon kind={l} /> }))} />
             </Body>
           </div>
           <div className="card">
-            <div className="card-head"><h3 className="card-title">Region</h3><Seg value={region} options={['Timezones', 'Languages']} onChange={setRegion} /></div>
+            <div className="card-head"><CardTitle tip="region">Region</CardTitle><Seg value={region} options={['Timezones', 'Languages']} onChange={setRegion} /></div>
             <Body height={300} empty={empty}>
               <BarList head={[region === 'Timezones' ? 'Timezone' : 'Language', 'Visitors']} slots={6} rows={REGION[region].map(([f, l, v]) => ({
                 key: l, text: l, label: null, value: v, iconKey: f, icon: <span aria-hidden style={{ fontSize: 14 }}>{f}</span>,
@@ -99,7 +100,7 @@ export function Analytics() {
         <div className="section-label"><RotateCcw size={14} />Retention</div>
         <div className="card">
           <div className="card-head">
-            <h3 className="card-title">Weekly Retention</h3>
+            <CardTitle tip="retention">Weekly Retention</CardTitle>
             <span className="card-sub">Share of each weekly cohort that came back</span>
           </div>
           <div style={{ marginTop: 16 }}>

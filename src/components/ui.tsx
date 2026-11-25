@@ -15,7 +15,11 @@ type Ctx = {
   /** charts reloading after a date-range change (numbers stay and morph) */
   refreshing: boolean
   collapsed: boolean; setCollapsed: (c: boolean) => void
+  /** prototype: small tooltips in the current style or the Figma tip style */
+  tipStyle: TipStyle; setTipStyle: (t: TipStyle) => void
+  startTour: () => void
 }
+export type TipStyle = 'classic' | 'figma'
 export const AppCtx = createContext<Ctx>(null!)
 export const useApp = () => useContext(AppCtx)
 
@@ -114,8 +118,8 @@ export function Popover({ anchor, open, onClose, align = 'start', matchWidth = t
 }
 
 /* ───────── Dropdown select ───────── */
-export function Select<T extends string>({ value, options, onChange, placeholder, label, align, width, icon }: {
-  value: T | null; options: { value: T; label: ReactNode }[]; onChange: (v: T) => void
+export function Select<T extends string>({ value, options, onChange, placeholder, label, align, width, icon, tour }: {
+  tour?: string; value: T | null; options: { value: T; label: ReactNode }[]; onChange: (v: T) => void
   placeholder?: string; label?: (v: T) => ReactNode; align?: 'right'; width?: number | string; icon?: ReactNode
 }) {
   const [open, setOpen] = useState(false)
@@ -123,7 +127,7 @@ export function Select<T extends string>({ value, options, onChange, placeholder
   const close = useCallback(() => setOpen(false), [])
   const cur = options.find((o) => o.value === value)
   return (
-    <div className="select-wrap" ref={ref} style={{ width }}>
+    <div className="select-wrap" ref={ref} style={{ width }} data-tour={tour}>
       <button className="select-btn" onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open} data-open={open || undefined}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
           {icon}
@@ -152,7 +156,7 @@ export function Select<T extends string>({ value, options, onChange, placeholder
 export function RangeSelect() {
   const { range, setRange } = useApp()
   return (
-    <Select value={range} align="right" onChange={setRange}
+    <Select value={range} align="right" onChange={setRange} tour="range"
       options={RANGES.map((r) => ({ value: r, label: RANGE_LABEL[r] }))} />
   )
 }

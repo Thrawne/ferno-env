@@ -55,12 +55,14 @@ function useMorph(series: LiveSeries[]) {
   return shown
 }
 
-export function LiveChart({ series, labels, height = 280, loading, format = fmtFull, badge = true, step = STEP, referenceLine }: {
+export function LiveChart({ series, labels, height = 280, loading, format = fmtFull, badge = true, step = STEP, referenceLine, mini }: {
   series: LiveSeries[]; labels: string[]; height?: number; loading?: boolean; format?: (n: number) => string; badge?: boolean
   /** seconds between points; match the data's real interval so Liveline's own ticks land on points (2h data → 7200) */
   step?: number
   /** a fixed horizontal line, e.g. the baseline average, so a zoomed axis can't exaggerate a change */
   referenceLine?: { value: number; label?: string }
+  /** illustration size: no grid, axis labels, badge or scrubbing */
+  mini?: boolean
 }) {
   const anchor = useRef(Math.floor(Date.now() / 1000)).current
   const shown = useMorph(series)
@@ -89,9 +91,10 @@ export function LiveChart({ series, labels, height = 280, loading, format = fmtF
         referenceLine={referenceLine}
         loading={loading}
         momentum={false}
-        badge={badge}
-        grid
-        scrub
+        badge={badge && !mini}
+        grid={!mini}
+        scrub={!mini}
+        padding={mini ? { top: 8, right: 10, bottom: 6, left: 4 } : undefined}
         fill
         pulse
         formatValue={(v) => format(Math.round(v))}

@@ -141,7 +141,7 @@ export function Reports() {
             <PixelCorner cols={22} rows={8} size={14} opacity={0.35} />
           </div>
         ) : list.map((r, i) => (
-          <a key={r.id} className="rp-row" href={`#/report/${r.id}`} onClick={(e) => { e.preventDefault(); go(`report/${r.id}`) }} style={{ animationDelay: `${i * 40}ms` }}>
+          <a key={r.id} data-tour={i === 0 ? 'reports' : undefined} className="rp-row" href={`#/report/${r.id}`} onClick={(e) => { e.preventDefault(); go(`report/${r.id}`) }} style={{ animationDelay: `${i * 40}ms` }}>
             <div className="rp-main">
               <div className="rp-top">
                 <SourceChip r={r} />

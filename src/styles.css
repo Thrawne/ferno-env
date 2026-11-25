@@ -690,3 +690,6 @@ a.rp-row:focus-visible, a.recent-card:focus-visible { outline: 2px solid var(--a
 }
 .legend.chips > button:hover { background: var(--n-100); }
 .legend.chips .swatch { width: 7px; height: 7px; border-radius: 99px; }
+
+/* Sidebar · Prototype group: the current tooltip style, trailing its row */
+.nav-trail { margin-left: auto; font-size: 11px; line-height: 16px; padding: 1px 6px; border-radius: 99px; background: var(--n-75); color: var(--n-600); }
